@@ -18,7 +18,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         public const float LABEL_HEIGHT = 36f;
         public const float TUTORIAL_MENU_WIDTH = 64f;
         public const float SCROLL_BAR_SIZE = 16f;
-        public const float BUTTON_PADDING = 4f;
+        public const float BUTTON_PADDING = 8f;
         public const float DOUBLE_PADDING = BUTTON_PADDING * 2f;
         public const float BUTTON_WIDTH = 270f;
         public const float BUTTON_HEIGHT = 32f;
@@ -139,10 +139,11 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
             return locationRectangle;
         }
 
-
-        
-
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="parentContainer"></param>
+        /// <param name="title"></param>
         protected void Window(Rect parentContainer, String title)
         {
             windowControlIndex = 0;
@@ -150,14 +151,15 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
             guiManager.DrawWindow(getRectangle(0, 0, parentContainer.width, parentContainer.height), title, false);
         }
 
+        protected int currentControlIndex { get { return windowControlIndex + scrollControlIndex; } }
         private int windowControlIndex = 0;
-        private float getNextWindowControlYPosition()
+        protected float getNextWindowControlYPosition()
         {
             return START_Y_WINDOW + BUTTON_HEIGHT * windowControlIndex++;
         }
 
         private int scrollControlIndex = 0;
-        private float getNextScrollControlYPosition()
+        protected float getNextScrollControlYPosition()
         {
             return START_Y_SCROLL + BUTTON_HEIGHT * scrollControlIndex++;
         }
@@ -185,6 +187,11 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         protected bool CheckBox(String text, ref bool toggled)
         {
             return guiManager.DrawCheckBox(getRectangle(START_X, getNextControlYPosition(), BUTTON_WIDTH, BUTTON_HEIGHT), text, ref toggled);
+        }
+
+        protected bool CheckBox(String text, ref bool toggled, ref bool doOnClick)
+        {
+            return CheckBox(text, ref toggled) ? (doOnClick = true) : doOnClick;           
         }
 
         private bool isScrollView = false;

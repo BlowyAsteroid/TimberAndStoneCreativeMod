@@ -44,6 +44,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ModUtils.cs" />
     <Compile Include="PluginMain.cs" />
     <Compile Include="Services\BuildingService.cs" />
     <Compile Include="UnitProfession.cs" />

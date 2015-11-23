@@ -12,16 +12,23 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 {
     public class CreativeMenuComponent : ModComponent
     {
+        private class Mouse 
+        { 
+            public enum Buttons { LEFT, RIGHT, MIDDLE }
+            public const String SCROLL_WHEEL = "Mouse ScrollWheel";
+        }
+       
         private const KeyCode PRIMARY_KEY = KeyCode.E;
         private const KeyCode CHOP_KEY = KeyCode.C;
         private const KeyCode RAISE_SELECTION_KEY = KeyCode.R;
         private const KeyCode LOWER_SELECTION_KEY = KeyCode.F;
         private const KeyCode CHANGE_VIEW_KEY = KeyCode.V;
+        private const KeyCode PICK_BLOCK_KEY = KeyCode.Q;
 
         private const String PARENT_CONTAINER_TITLE = "";
         private const int PARENT_CONTAINER_ID = 102;
         private const float CONTAINER_WIDTH = BUTTON_WIDTH + SCROLL_BAR_SIZE;
-        private static readonly float CONTAINER_HEIGHT = Screen.height * 0.25f;
+        private static readonly float CONTAINER_HEIGHT = WINDOW_TITLE_HEIGHT;
 
         private BuildingService buildingService = BuildingService.getInstance();
 
@@ -49,7 +56,8 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         private bool isSelecting { get { return controlPlayer.selecting; } }
         private bool isDesigning { get { return controlPlayer.designing; } }
 
-        private eDesignType currentDesignType;
+        private bool isScrolling { get { return Input.GetAxis(Mouse.SCROLL_WHEEL) != 0; } }
+
         private BlockProperties selectedBlockType;
         private IBlockData selectedBlockData;
         private List<BlockProperties> availableBlockTypes;
@@ -60,16 +68,18 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         private bool doReplaceBlocks = false;
         private bool doRemoveBlocks = false;
         private bool doRemoveTrees = false;
-        private bool doRemoveAllTrees = false;        
-        private bool doMineStart = false;
-        private bool doChopStart = false;
+        private bool doRemoveAllTrees = false;    
         private bool doSaveGame = false;
+
+        private bool hasRemovedTrees = false;
+
+        private bool isScrollOverride = false;
 
         public void Start()
         {
             setUpdatesPerSecond(5);
 
-            availableBlockTypes = buildingService.getUnbuildableBlockTypes();       
+            availableBlockTypes = ModUtils.getUnbuildableBlockTypes();       
         }
 
         private IBlock tempBlock;
@@ -80,42 +90,45 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 translateMouse();
             }
 
-            if (!isDesigning && !isSelecting)
-            {
-                if (Input.GetKeyDown(KeyCode.S) && Input.GetKey(KeyCode.LeftControl) || doSaveGame)
-                {
-                    doSaveGame = false;
-
-                    if (Time.timeSinceLevelLoad > 12f)
-                    {
-                        log("Saving: " + WorldManager.getInstance().settlementName);
-                        WorldManager.getInstance().SaveGame();
-                    }
-                }
-            }
-
             if (isCreativeEnabled)
-            {
-                currentDesignType = controlPlayer.designType;
-
+            {                
                 if (Input.GetKeyUp(CHANGE_VIEW_KEY))
                 {
                     controlPlayer.SwitchCamera();
                     log("Camera switched.");
                 }
 
-                if (!isDesigning)
+                if (!isSelecting)
                 {
-                    if (Input.GetKeyUp(PRIMARY_KEY) || doMineStart)
+                    if (Input.GetKeyDown(PRIMARY_KEY))
                     {
-                        doMineStart = false;
                         controlPlayer.StartDesigning(eDesignType.MINE);
                     }
-                    else if (Input.GetKeyUp(CHOP_KEY) || doChopStart)
+                    else if (Input.GetKeyUp(CHOP_KEY))
                     {
-                        doChopStart = false;
                         controlPlayer.chopType = eChopType.CLEARCUT;
                         controlPlayer.StartDesigning(eDesignType.CHOP);
+                    }
+                    else if (Input.GetKeyUp(PICK_BLOCK_KEY))
+                    {
+                        //Pick Block
+                        tempBlock = buildingService.getBlock(controlPlayer.WorldPositionAtMouse());
+
+                        if (tempBlock.properties.GetType() == typeof(BlockAir))
+                        {
+                            tempBlock = buildingService.getBlock(ModUtils.getCoordinateFromBelow(tempBlock.coordinate));
+                        }
+
+                        updateControlPlayerBlockProperties(tempBlock.properties);
+                        controlPlayer.StartDesigning(eDesignType.BUILD);
+                    }
+                }                 
+
+                if (!isDesigning && !isSelecting)
+                {
+                    if (Input.GetKeyDown(KeyCode.S) && Input.GetKey(KeyCode.LeftControl) && !doSaveGame)
+                    {
+                        doSaveGame = true;
                     }
                 }
                 else if (isSelecting)
@@ -129,11 +142,29 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                         controlPlayer.LowerSelectBox(controlPlayer.currentSelectBox);
                     }
 
+                    if (isScrolling && isMouseInGUIOverride)
+                    {
+                        isScrollOverride = true;
+                    }                    
+
+                    if ((Input.GetMouseButtonUp(1) && !controlPlayer.cameraRotate) 
+                        || Input.GetKeyUp(KeyCode.Tab) || Input.GetKeyUp(KeyCode.Escape))
+                    {
+                        isMouseInGUIOverride = false;
+                        controlPlayer.CancelDesigning(false);
+                        controlPlayer.StartDesigning(controlPlayer.designType);
+                    }
+
                     if (isMining)
                     {
-                        if (Input.GetKeyUp(PRIMARY_KEY))
+                        if (Input.GetMouseButtonUp(0) && !isMouseInGUIOverride)
+                        {
+                            isMouseInGUIOverride = true;
+                        }
+                        else if (Input.GetMouseButtonUp(0))
                         {
                             doRemoveBlocks = true;
+                            isMouseInGUIOverride = false;
 
                             controlPlayer.CancelDesigning(false);
                             controlPlayer.StartDesigning(eDesignType.MINE);
@@ -141,73 +172,86 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                     }
                     else if (isBuilding)
                     {
-                        if (Input.GetKeyUp(PRIMARY_KEY))
+                        if (Input.GetMouseButtonUp(0) && !isMouseInGUIOverride)
                         {
-                            //Replace Blocks
-                            doReplaceBlocks = true;
-
-                            updateSelectedBlockInfo();
-                            controlPlayer.CancelDesigning(false);
-                            controlPlayer.StartDesigning(eDesignType.BUILD);
+                            isMouseInGUIOverride = true;
                         }
-                    }
-                }
-                else if(isDesigning)
-                {
-                    if (isBuilding)
-                    {
-                        if (Input.GetKeyDown(PRIMARY_KEY))
+                        else if (Input.GetMouseButtonUp(0))
                         {
-                            //Pick Block
-                            tempBlock = buildingService.getBlock(controlPlayer.WorldPositionAtMouse());
-
-                            if (tempBlock.properties.GetType() != typeof(BlockAir))
+                            if (Input.GetKey(PRIMARY_KEY))
                             {
-                                selectBlockProperties(tempBlock.properties);
+                                doReplaceBlocks = true;
                             }
-                        }
+                            else doCreateBlocks = true;
 
-                        doCreateBlocks = true;
-                        updateSelectedBlockInfo();
+                            isMouseInGUIOverride = false;
+
+                            controlPlayer.CancelDesigning(false);
+                            controlPlayer.StartDesigning(eDesignType.BUILD);                            
+                        }
                     }
                     else if (isChopping)
                     {
-                        if (!doRemoveAllTrees)
-                        {
-                            //Remove Selected Trees
-                             doRemoveTrees = true;
-                        }
-                    }  
-                }              
-            }           
+                        hasRemovedTrees = false;                 
+                    }
+                }
 
-            postUpdate();
+                if (!hasRemovedTrees && !isSelecting)
+                {
+                    doRemoveTrees = true;
+                    hasRemovedTrees = true;
+                } 
+            }
+
+            try
+            {
+                postUpdate();
+            }
+            catch (Exception e)
+            {
+                log(e.Message);
+            }
         }
         
         public void postUpdate()
         {
             if (!isTimeToUpdate(DateTime.Now.Ticks)) return;
 
+            if (isScrollOverride && !isScrolling)
+            {
+                isScrollOverride = false;
+            }
+
             if (isCreativeEnabled)
             {
+                if (doCreateBlocks || doReplaceBlocks)
+                {
+                    selectedBlockType = controlPlayer.buildingMaterial;
+
+                    if (selectedBlockType.isTransparent() && selectedBlockType.getVariations() != null)
+                    {
+                        selectedBlockData = controlPlayer.buildingVariations[controlPlayer.buildingVariationIndex][0];
+                    }
+                    else selectedBlockData = null;
+                }
+
                 if (doReplaceBlocks)
                 {
                     doReplaceBlocks = false;
                     //Replace Selected Blocks
-                    buildingService.getSelectedCoordinates(true).ForEach(c =>
-                        buildingService.buildBlock(c, selectedBlockType, selectedBlockData));
+                    buildingService.getSelectedCoordinates(excludeAirBlocks: true).ForEach(c => buildingService.buildBlock(c, selectedBlockType, selectedBlockData));
                 }
                 else if (doCreateBlocks)
                 {
                     doCreateBlocks = false;
                     //Build Selected Blocks
-                    buildingService.fillBuildDesignationsWith(selectedBlockType, selectedBlockData);
+                    buildingService.buildBlocks(buildingService.getSelectedCoordinates(onlyAirBlocks: true), selectedBlockType, selectedBlockData);
                 }
                 else if (doRemoveBlocks)
                 {
                     doRemoveBlocks = false;
                     //Remove Selected Blocks
-                    buildingService.getSelectedCoordinates(true).ForEach(c => buildingService.removeBlock(c));
+                    buildingService.getSelectedCoordinates(excludeAirBlocks: true).ForEach(c => buildingService.removeBlock(c));
                 }
                 else if (doRemoveTrees)
                 {
@@ -221,18 +265,17 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                     //Remove All Trees
                     buildingService.removeAllTreeItems();
                 }
-            }
-        }
+                else if (doSaveGame)
+                {
+                    doSaveGame = false;
 
-        private void updateSelectedBlockInfo()
-        {
-            selectedBlockType = controlPlayer.buildingMaterial;
-
-            if (controlPlayer.buildingMaterial.isTransparent() && controlPlayer.buildingMaterial.getVariations() != null)
-            {
-                selectedBlockData = controlPlayer.buildingVariations[controlPlayer.buildingVariationIndex][0];
+                    if (Time.timeSinceLevelLoad > 12f)
+                    {
+                        log("Saving: " + WorldManager.getInstance().settlementName);
+                        WorldManager.getInstance().SaveGame();
+                    }
+                }
             }
-            else selectedBlockData = null;
         }
 
         public void OnGUI()
@@ -245,8 +288,9 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                     updateMouseForUI(parentContainer);
                 }
             }
-        }        
+        }
 
+        private bool isMouseInGUIOverride = false;
         private void drawBuildWindow(int id)
         {
             Window(parentContainer, PARENT_CONTAINER_TITLE);
@@ -255,36 +299,16 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 
             if (isCreativeEnabled)
             {
+                if (isBuilding && isDesigning)
+                {
+                    Label(controlPlayer.buildingMaterial.getName());
+                }
+
                 if (isSelecting)
                 {
-                    Label(controlPlayer.designType + " Select");
-
-                    if (isMining)
+                    if (!isScrollOverride)
                     {
-                        Label(getKeyString(RAISE_SELECTION_KEY) + " Raise Selection");
-                        Label(getKeyString(LOWER_SELECTION_KEY) + " Lower Selection");
-                        Label(getKeyString(PRIMARY_KEY) + " Mine Selection");
-                    }
-                    else if (isBuilding)
-                    {
-                        Label(getKeyString(RAISE_SELECTION_KEY) + " Raise Selection");
-                        Label(getKeyString(LOWER_SELECTION_KEY) + " Lower Selection");
-                        Label(getKeyString(PRIMARY_KEY) + " Replace Selection");
-                        Label("Left Click To Build");
-                    }
-                    else if (isChopping)
-                    {
-                        Label("Left Click To Chop");
-                    }
-                }
-                else if (isDesigning)
-                {
-                    Label(controlPlayer.designType + " Design");
-
-                    if (isBuilding)
-                    {
-                        Label(getKeyString(PRIMARY_KEY) + " Select Block At Mouse");
-                        Label("(Non-Buildable Blocks)");
+                        guiManager.mouseInGUI = isMouseInGUIOverride;
                     }
                 }
             }
@@ -293,11 +317,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 
             if (isCreativeEnabled)
             {
-                if (isSelecting)
-                {
-                    
-                }
-                else if (isDesigning)
+                if (isDesigning && !isSelecting)
                 {
                     if (isBuilding)
                     {
@@ -305,7 +325,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                         {
                             if(Button(properties.getName()))
                             {
-                                selectBlockProperties(properties);
+                                updateControlPlayerBlockProperties(properties);
                                 break;
                             }
                         }
@@ -315,11 +335,8 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                         Button("Remove All Trees", ref doRemoveAllTrees);
                     }
                 }
-                else
+                else if(!isSelecting && !isDesigning)
                 {
-                    Button(getKeyString(PRIMARY_KEY) + " Mine", ref doMineStart);
-                    Button(getKeyString(CHOP_KEY) + " Chop", ref doChopStart);
-
                     if (Time.timeSinceLevelLoad > 12f)
                     {
                         Button("Save Game", ref doSaveGame);
@@ -335,7 +352,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
             return "[" + key + "]";
         }        
 
-        private void selectBlockProperties(BlockProperties properties)
+        private void updateControlPlayerBlockProperties(BlockProperties properties)
         {
             controlPlayer.buildingMaterial = properties;
             controlPlayer.buildTile = properties.getID();

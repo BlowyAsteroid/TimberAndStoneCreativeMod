@@ -129,10 +129,10 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
             }
         }
 
+        private int currentResourceAmount;
         public void setResourceMass(Resource resource, float mass)
         {
-            int currentResourceAmount = getResourceAmount(resource);
-            removeResource(resource, currentResourceAmount);
+            removeResource(resource, currentResourceAmount = getResourceAmount(resource));
             resource.mass = mass;
             addResource(resource, currentResourceAmount);
         }
@@ -157,7 +157,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
             {
                 cap = storage.getStorageCap(type);
                 available = storage.getStorageAvailable(type);
-                used = cap - available;// storage.getStorageUsed(type);
+                used = cap - available;
                 if (available / cap < increasePercentage * INCREASE_MULTIPLIER)
                 {
                     setStorageCap(type, used * increasePercentage);

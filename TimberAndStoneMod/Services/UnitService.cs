@@ -92,7 +92,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 
         public APlayableEntity addUnit(UnitProfession profession, Vector3 position, bool autoAccept = false)
         {
-            APlayableEntity entity = unitManager.AddHumanUnit(profession.getName(), position, 
+            APlayableEntity entity = unitManager.AddHumanUnit(profession.Name, position, 
                 true, !autoAccept, UnityEngine.Random.Range(0, 3) == 1).GetComponent<APlayableEntity>();
 
             unitManager.AddMigrantResources(entity);

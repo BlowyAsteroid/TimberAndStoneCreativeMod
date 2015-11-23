@@ -36,6 +36,6 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
             this.name = name;
         }
 
-        public String getName() { return this.name; }
+        public String Name { get { return this.name; } }
     }
 }

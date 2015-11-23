@@ -14,53 +14,11 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
         private static BuildingService instance = new BuildingService();
         public static BuildingService getInstance() { return instance; }
 
-        public static IBlock getBlockFromPosition(Vector3 position)
-        {
-            return instance.getBlock(Coordinate.FromWorld(position));
-        }
-
         private TerrainObjectManager terrainManager = TerrainObjectManager.getInstance();
         private ChunkManager chunkManager = ChunkManager.getInstance();
         private DesignManager designManager = DesignManager.getInstance();
 
-        private BuildingService() { }
-
-        private const int MAX_BLOCK_INDEX = 255;
-        private BlockProperties tempProperties = BlockProperties.fromID(0);
-        private String tempName = String.Empty;
-        private List<String> usedBlockNames = new List<String>();
-        private List<BlockProperties> availableBlockTypes;
-        public List<BlockProperties> getBlockTypes()
-        {
-            if (availableBlockTypes != null) return availableBlockTypes;
-
-            availableBlockTypes = new List<BlockProperties>();
-
-            for (int i = 0; i < MAX_BLOCK_INDEX; i++)
-            {
-                if ((tempProperties = BlockProperties.fromID(i)) != null)
-                {
-                    tempName = tempProperties.getName().ToLower().Trim();
-
-                    if (!availableBlockTypes.Contains(tempProperties)
-                        && !usedBlockNames.Contains(tempName)
-                        && !tempName.Contains("technical")
-                        && !tempName.Contains("block (")
-                        && !tempName.Contains("scaffolding"))
-                    {
-                        usedBlockNames.Add(tempName);
-                        availableBlockTypes.Add(tempProperties);
-                    }
-                }
-            }
-
-            return availableBlockTypes;
-        }
-
-        public List<BlockProperties> getUnbuildableBlockTypes()
-        {
-            return getBlockTypes().Where(t => !t.isBuildable() && !t.getName().Contains("Sand") && !t.getName().Contains("Crop")).ToList();
-        }
+        private BuildingService() { }        
 
         public IBlock getBlock(Coordinate coordinate)
         {
@@ -71,71 +29,61 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
         {
             return chunkManager.GetBlock(Coordinate.FromWorld(worldPosition));
         }
-
-        public bool buildBlock(Coordinate coordinate, BlockProperties properties, IBlockData data = null)
-        {
-            if (coordinate.absolute.y > 0)
-            {
-                if (data != null ? chunkManager.SetBlock(coordinate, properties, data) : chunkManager.SetBlock(coordinate, properties))
-                {
-                    designManager.ReValidateBlock(coordinate);
-
-                    return true;
-                }
-            }
-
-            return false;
-        }
         
         public bool removeBlock(Coordinate coordinate)
         {
-            return buildBlock(coordinate, BlockAir.BlockAir);
-        }
+            return coordinate.absolute.y > 0 ? buildBlock(coordinate, BlockAir.BlockAir) != null : false;
+        }        
 
-        public void fillBuildDesignationsWith(BlockProperties properties, IBlockData data = null)
+        public List<Coordinate> getSelectedCoordinates(bool excludeAirBlocks = false, bool onlyAirBlocks = false)
         {
-            foreach (Coordinate c in designManager.getBuildPoolBlocks())
+            if (excludeAirBlocks)
             {
-                buildBlock(c, properties, data);
+                return ModUtils.createCoordinatesFromSelection(designManager.selectedBlocks)
+                    .Where(c => chunkManager.GetBlock(c).properties.GetType() != typeof(BlockAir)).ToList();
             }
+            else if (onlyAirBlocks)
+            {
+                return ModUtils.createCoordinatesFromSelection(designManager.selectedBlocks)
+                    .Where(c => chunkManager.GetBlock(c).properties.GetType() == typeof(BlockAir)).ToList();
+            }
+            else return ModUtils.createCoordinatesFromSelection(designManager.selectedBlocks);
         }
 
-        private const float OFFSET_Y = 0.1f;
-        private List<Coordinate> selectedCoordinates = new List<Coordinate>();
-        private Vector3 startPosition, tempPosition;
-        private Coordinate tempCoordinate;
-        private IBlock tempBlock;
-        public List<Coordinate> getSelectedCoordinates(bool isOffsetY = false, bool excludeAirBlocks = true)
+        private static readonly List<IBlock> EMPTY_BLOCK_LIST = new List<IBlock>();
+        private List<IBlock> builtBlockList = new List<IBlock>();
+        public List<IBlock> buildBlocks(List<Coordinate> coordinates, BlockProperties properties, IBlockData data = null)
         {
-            selectedCoordinates.Clear();
+            builtBlockList.Clear();
 
-            if (designManager.selectedBlocks.Count() > 1)
+            foreach (Coordinate coordinate in coordinates)
             {
-                startPosition = designManager.selectedBlocks[0];
-                startPosition.y += isOffsetY ? -OFFSET_Y : 0;
+                builtBlockList.Add(buildBlock(coordinate, properties, data));
+            }
 
-                for (int i = 1; i < designManager.selectedBlocks.Count(); i++)
+            return builtBlockList.Where(b => b != null).ToList();
+        }
+        
+        public IBlock buildBlock(Coordinate coordinate, BlockProperties properties, IBlockData data = null)
+        {
+            if (chunkManager.isCoordInMap(coordinate))
+            {
+                if (setBlock(coordinate, properties, data))
                 {
-                    tempPosition = designManager.selectedBlocks[i];
-                    tempCoordinate = Coordinate.FromWorld(startPosition + tempPosition * 0.2f);
+                    designManager.ReValidateBlock(coordinate);
 
-                    if ((tempBlock = chunkManager.GetBlock(tempCoordinate)) != null)
-                    {
-                        if (excludeAirBlocks && tempBlock.properties.GetType() == typeof(BlockAir)) continue;
-                       
-                        selectedCoordinates.Add(tempCoordinate);
-                    }
+                    return chunkManager.GetBlock(coordinate);
                 }
             }
 
-            return selectedCoordinates;
+            return null;
         }
 
-        public void buildStructures()
+        public bool setBlock(Coordinate coordinate, BlockProperties properties, IBlockData data = null)
         {
-            throw new NotImplementedException();
+            return data != null ? chunkManager.SetBlock(coordinate, properties, data) : chunkManager.SetBlock(coordinate, properties);
         }
-
+                
         public List<TreeFlora> getSelectedTrees()
         {
             return terrainManager.treeObjects.Where(tree => tree.inChopQue).ToList();

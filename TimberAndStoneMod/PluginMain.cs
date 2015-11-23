@@ -4,13 +4,12 @@ using Timber_and_Stone.API;
 using Timber_and_Stone.API.Event;
 using Timber_and_Stone.Event;
 using UnityEngine;
+using System;
 
 namespace Plugin.BlowyAsteroid.TimberAndStoneMod
 {
     public class PluginMain : CSharpPlugin, IEventListener
    {
-        private ModSettings modSettings = ModSettings.getInstance();
-
         public override void OnLoad()
         {
             ModComponent.addComponent(typeof(GameSpeedComponent));
@@ -27,7 +26,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         [Timber_and_Stone.API.Event.EventHandler(Priority.Normal)]
         public void onInvasionNormal(EventInvasion evt)
         {
-            if (!modSettings.isPreventInvasionsEnabled) return;
+            if (!ModSettings.isPreventInvasionsEnabled) return;
 
             evt.result = Result.Deny;
         }
@@ -35,15 +34,15 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         [Timber_and_Stone.API.Event.EventHandler(Priority.Monitor)]
         public void onInvasionMonitor(EventInvasion evt)
         {
-            if (!modSettings.isPreventInvasionsEnabled || evt.result != Result.Deny) return;
+            if (!ModSettings.isPreventInvasionsEnabled || evt.result != Result.Deny) return;
 
-            ModComponent.log(evt.invasion.getName() + " invasion cancelled.");
+            ModComponent.log(String.Format("A {0} invasion has been cancelled.", evt.invasion.getName()));
         }
 
         [Timber_and_Stone.API.Event.EventHandler(Priority.Normal)]
         public void onEntityDeathNormal(EventEntityDeath evt)
         {
-            if (!modSettings.isPreventDeathEnabled || !UnitService.isFriendly(evt.getUnit())) return;
+            if (!ModSettings.isPreventDeathEnabled || !UnitService.isFriendly(evt.getUnit())) return;
             
             evt.result = Result.Deny;
         }
@@ -51,13 +50,19 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         [Timber_and_Stone.API.Event.EventHandler(Priority.Monitor)]
         public void onEntityDeathMonitor(EventEntityDeath evt)
         {
-            if (!modSettings.isPreventDeathEnabled || evt.result != Result.Deny) return;
-
+            if (!ModSettings.isPreventDeathEnabled || evt.result != Result.Deny) return;
+                        
             ALivingEntity unit = evt.getUnit();
-            unit.hitpoints = unit.maxHP;
-            unit.hunger = 0f;               
+            bool isMurder = unit.hitpoints <= 0;
+            bool isStarvation = unit.hitpoints > 0 && unit.hunger <= 0;
 
-            ModComponent.log(unit.unitName + " has been brought back to life.");
+            unit.hitpoints = unit.maxHP;
+            unit.hunger = 0f;
+
+            ModComponent.log(String.Format("{0} died{1}, but has been brought back to life.", 
+                unit.unitName, 
+                isStarvation ? " of starvation" : String.Empty
+            ));
         }
     }
 }

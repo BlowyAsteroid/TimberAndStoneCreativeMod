@@ -27,7 +27,6 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         private bool isCheatsEnabled = false;
         private bool isUnlimitedStorageEnabled = false;
         private bool isInfiniteMaterialsEnabled = false;
-        private bool isLowerResourceMassEnabled = false;
         private bool isAlwaysDayTimeEnabled = false;
         private bool isRealTimeEnabled = false;
         private bool isPeacefulEnabled = false;
@@ -42,20 +41,17 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         private bool doSpawnMigrant = false;
         private bool doSpawnMerchant = false;
         private bool doSpawnAnimal = false;
-        private bool doLowerResourceMass = false;
         private bool doUnlimitedStorage = false;
         private bool doAlwaysDaytime = false;
         private bool doRealTime = false;
         private bool doCheats = false;
+        private bool doInfiniteMaterials = false;
 
         public void Start()
         {
             setUpdatesPerSecond(5);
 
-            modSettings.isCheatsEnabled = isCheatsEnabled;
-            modSettings.isPeacefulEnabled = isPeacefulEnabled;
-            modSettings.isAlwaysDayTimeEnabled = isAlwaysDayTimeEnabled;
-            modSettings.isRealTimeEnabled = isRealTimeEnabled;
+            
         }
 
         private ResourceService resourceService = ResourceService.getInstance();
@@ -75,6 +71,21 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 doCheats = false;
 
                 modSettings.isCheatsEnabled = isCheatsEnabled;
+
+                if (!isCheatsEnabled)
+                {
+                    //Disable all cheats
+                    isCheatsEnabled = false;
+                    isUnlimitedStorageEnabled = false;
+                    isInfiniteMaterialsEnabled = false;
+                    isAlwaysDayTimeEnabled = modSettings.isAlwaysDayTimeEnabled = false;
+                    isRealTimeEnabled = modSettings.isRealTimeEnabled = false;
+                    isPeacefulEnabled = modSettings.isPeacefulEnabled = false;
+                    isHungerEnabled = true;
+
+                    doUnlimitedStorage = true;
+                    doInfiniteMaterials = true;
+                }
             }
 
             if (doAlwaysDaytime)
@@ -92,6 +103,29 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 modSettings.isAlwaysDayTimeEnabled = isAlwaysDayTimeEnabled = false;
             }
 
+            if (doUnlimitedStorage)
+            {
+                doUnlimitedStorage = false;
+                isInfiniteMaterialsEnabled = false;
+                //Restore Storage Caps
+                resourceService.restoreStorageCaps();
+            }
+            
+            if (doInfiniteMaterials)
+            {
+                doInfiniteMaterials = false;
+                isUnlimitedStorageEnabled = false;
+                //doUnlimitedStorage = true;
+                if (isInfiniteMaterialsEnabled)
+                {//Lower Resource Mass                    
+                    resourceService.getResources().ForEach(r => resourceService.lowerResourceMass(r));
+                }//Restore Resource Mass
+                else resourceService.getResources().ForEach(r => resourceService.restoreResourceMass(r));
+
+                //Refill Storage Containers
+                resourceService.getMaterials().ForEach(r => resourceService.fillResourceStorage(r, FILL_STORAGE_PERCENTAGE));
+            }
+
             if (isCheatsEnabled)
             {
                 if (isPeacefulEnabled)
@@ -106,33 +140,16 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                     unitService.getFriendlyUnits().ForEach(u => fixUnitStatus(u));
                 }
 
-                if (doLowerResourceMass)
-                {
-                    doLowerResourceMass = false;
-                    //Lower Resource Mass
-                    if (isLowerResourceMassEnabled)
-                    {
-                        resourceService.getResources().ForEach(r => resourceService.lowerResourceMass(r));
-                    }
-                    else resourceService.getResources().ForEach(r => resourceService.restoreResourceMass(r));
-                }
-
                 if (isInfiniteMaterialsEnabled)
                 {
                     //Refill Storage Containers
                     resourceService.getMaterials().ForEach(r => resourceService.fillResourceStorage(r, FILL_STORAGE_PERCENTAGE));
                 }
-
+                
                 if (isUnlimitedStorageEnabled)
                 {
                     //Update Storage Caps
                     resourceService.makeStorageRoom();
-                }
-                else if (doUnlimitedStorage)
-                {
-                    doUnlimitedStorage = false;
-                    //Restore Storage Caps
-                    resourceService.restoreStorageCaps();
                 }
 
                 if (doRemoveOvereaterTrait)
@@ -217,48 +234,58 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                     isMouseHover = updateMouseForUI(parentContainer);                    
                 }
             }
-        }
-        
-        private int buttonIndex;
+        }        
+
         private void drawCheatWindow(int id)
         {
             Window(parentContainer, PARENT_CONTAINER_TITLE);
 
-            buttonIndex = 0;
+            CheckBox(BUTTON_WIDTH - 94f, START_Y, "Cheats", ref isCheatsEnabled, ref doCheats);
 
-            CheckBox(BUTTON_WIDTH - 94f, START_Y + BUTTON_HEIGHT * buttonIndex++, "Cheats", ref isCheatsEnabled, ref doCheats);
+            getNextWindowControlYPosition();
 
             if (isMouseHover && isCheatsEnabled)
-            {                
-                CheckBox(START_X, START_Y + BUTTON_HEIGHT * buttonIndex++, "Infinite Materials", ref isInfiniteMaterialsEnabled);
-                CheckBox(START_X, START_Y + BUTTON_HEIGHT * buttonIndex++, "Unlimited Storage", ref isUnlimitedStorageEnabled, ref doUnlimitedStorage);
-                CheckBox(START_X, START_Y + BUTTON_HEIGHT * buttonIndex++, "Reduce Resource Mass", ref isLowerResourceMassEnabled, ref doLowerResourceMass);
+            {
+                if (!isUnlimitedStorageEnabled)
+                {
+                    CheckBox("Infinite Materials", ref isInfiniteMaterialsEnabled, ref doInfiniteMaterials);
+                }
 
-                CheckBox(START_X, START_Y + BUTTON_HEIGHT * buttonIndex++, "Always Daytime", ref isAlwaysDayTimeEnabled, ref doAlwaysDaytime);
-                CheckBox(START_X, START_Y + BUTTON_HEIGHT * buttonIndex++, "Real Time", ref isRealTimeEnabled, ref doRealTime);                
+                if (!isInfiniteMaterialsEnabled)
+                {
+                    CheckBox("Unlimited Storage", ref isUnlimitedStorageEnabled, ref doUnlimitedStorage);
+                }
 
-                CheckBox(START_X, START_Y + BUTTON_HEIGHT * buttonIndex++, "Peaceful", ref isPeacefulEnabled);
-                CheckBox(START_X, START_Y + BUTTON_HEIGHT * buttonIndex++, "Hunger", ref isHungerEnabled);
+                if (!isRealTimeEnabled)
+                {
+                    CheckBox("Always Daytime", ref isAlwaysDayTimeEnabled, ref doAlwaysDaytime);
+                }
 
-                Button(START_X, START_Y + BUTTON_HEIGHT * buttonIndex++, "Spawn Migrant", ref doSpawnMigrant);
-                Button(START_X, START_Y + BUTTON_HEIGHT * buttonIndex++, "Spawn Merchant", ref doSpawnMerchant);
-                Button(START_X, START_Y + BUTTON_HEIGHT * buttonIndex++, "Spawn Animal", ref doSpawnAnimal);
+                if (!isAlwaysDayTimeEnabled)
+                {
+                    CheckBox("Real Time", ref isRealTimeEnabled, ref doRealTime);
+                }
+
+                CheckBox("Peaceful", ref isPeacefulEnabled);
+                CheckBox("Hunger", ref isHungerEnabled);
+
+                Button("Spawn Migrant", ref doSpawnMigrant);
+                Button("Spawn Merchant", ref doSpawnMerchant);
+                Button("Spawn Animal", ref doSpawnAnimal);
 
                 if (!isPeacefulEnabled)
                 {
-                    Button(START_X, START_Y + BUTTON_HEIGHT * buttonIndex++, "Spawn Invasion", ref doSpawnInvasion);
-                    Button(START_X, START_Y + BUTTON_HEIGHT * buttonIndex++, "Kill All Enemies", ref doKillEnemies);
+                    Button("Spawn Invasion", ref doSpawnInvasion);
+                    Button("Kill All Enemies", ref doKillEnemies);
                 }
 
-                Button(START_X, START_Y + BUTTON_HEIGHT * buttonIndex++, "Fix Overeater Trait", ref doRemoveOvereaterTrait);
-                Button(START_X, START_Y + BUTTON_HEIGHT * buttonIndex++, "Best Traits", ref doBestTraits);
-                Button(START_X, START_Y + BUTTON_HEIGHT * buttonIndex++, "Max Current Professions", ref doMaxCurrentProfessions);
-                Button(START_X, START_Y + BUTTON_HEIGHT * buttonIndex++, "Max All Professions", ref doMaxAllProfessions);
+                Button("Remove Overeater Trait", ref doRemoveOvereaterTrait);
+                Button("Best Traits", ref doBestTraits);
+                Button("Max Current Professions", ref doMaxCurrentProfessions);
+                Button("Max All Professions", ref doMaxAllProfessions);
             }
 
-            parentContainer.height = WINDOW_TITLE_HEIGHT + BUTTON_HEIGHT * buttonIndex + BUTTON_PADDING * 2;
-
-            GUI.DragWindow();
+            parentContainer.height = WINDOW_TITLE_HEIGHT + BUTTON_HEIGHT * currentControlIndex + BUTTON_PADDING * 2;
         }        
     }
 }

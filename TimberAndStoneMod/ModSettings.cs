@@ -6,7 +6,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
     public class ModSettings
     {
         private static ModSettings instance = new ModSettings();
-        public static ModSettings getInstance() { return instance; }       
+        public static ModSettings getInstance() { return instance; }
 
         public static void setPlayerSetting(String name, bool value)
         {
@@ -18,14 +18,14 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
             return Convert.ToBoolean(PlayerPrefs.GetInt(name));
         }
 
+        public static bool isPreventDeathEnabled { get { return instance.isCheatsEnabled && instance.isPeacefulEnabled; } }
+        public static bool isPreventInvasionsEnabled { get { return instance.isCheatsEnabled && instance.isPeacefulEnabled; } }
+
         public bool isPeacefulEnabled { get; set; }
         public bool isCheatsEnabled { get; set; }
 
         public bool isAlwaysDayTimeEnabled { get; set; }
-        public bool isRealTimeEnabled { get; set; }
-
-        public bool isPreventDeathEnabled { get { return isCheatsEnabled && isPeacefulEnabled; } }
-        public bool isPreventInvasionsEnabled { get { return isPreventDeathEnabled; } }
+        public bool isRealTimeEnabled { get; set; }       
 
         private ModSettings() { }
     }
