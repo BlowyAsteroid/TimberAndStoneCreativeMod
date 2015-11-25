@@ -17,8 +17,8 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
             return instance.getUnitAlignment(entity) == Alignment.Ally;
         }
 
-        private const int MAX_SPAWN_ATTEMPTS = 10;
-        private const int MAX_ANIMAL_COUNT = 500;
+        private const int MAX_SPAWN_ATTEMPTS = 5;
+        private const int MAX_ANIMAL_COUNT = 250;
 
         private Dictionary<APlayableEntity, APlayableEntity.Preferences> originalTraits 
             = new Dictionary<APlayableEntity, APlayableEntity.Preferences>();

@@ -50,8 +50,6 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         public void Start()
         {
             setUpdatesPerSecond(5);
-
-            
         }
 
         private ResourceService resourceService = ResourceService.getInstance();
@@ -218,9 +216,9 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         private void fixUnitStatus(ALivingEntity entity)
         {
             entity.hunger = isHungerEnabled ? entity.hunger : 0f;
-            entity.fatigue = isPeacefulEnabled ? entity.fatigue : 1f;
-            entity.morale = isPeacefulEnabled ? entity.morale : 1f;
-            entity.hitpoints = isPeacefulEnabled ? entity.hitpoints : entity.maxHP;
+            entity.fatigue = !isPeacefulEnabled ? entity.fatigue : 1f;
+            entity.morale = !isPeacefulEnabled ? entity.morale : 1f;
+            entity.hitpoints = !isPeacefulEnabled ? entity.hitpoints : entity.maxHP;
         } 
         
         public void OnGUI()

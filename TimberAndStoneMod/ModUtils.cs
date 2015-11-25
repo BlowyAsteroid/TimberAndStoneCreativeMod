@@ -3,7 +3,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using Timber_and_Stone;
+using Timber_and_Stone.API;
+using Timber_and_Stone.BlockData;
 using Timber_and_Stone.Blocks;
 using UnityEngine;
 
@@ -52,51 +55,63 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
                 && coordinate.chunk.z >= 0 && coordinate.chunk.z <= worldSize.z;
         }
 
-        private static Vector3 vectorFromBelow = Vector3.zero;
+        private static Vector3 vectorFrom = Vector3.zero;
         public static Coordinate getCoordinateFromBelow(Coordinate coordinate)
         {
-            vectorFromBelow.Set(coordinate.world.x, coordinate.world.y - BLOCK_TO_WORLD_SIZE, coordinate.world.z);
+            vectorFrom.Set(coordinate.world.x, coordinate.world.y - BLOCK_TO_WORLD_SIZE, coordinate.world.z);
 
-            return Coordinate.FromWorld(vectorFromBelow);
+            return Coordinate.FromWorld(vectorFrom);
         }
 
-        private const int MAX_BLOCK_INDEX = 255;
+        public static Coordinate getCoordinateFromAbove(Coordinate coordinate)
+        {
+            vectorFrom.Set(coordinate.world.x, coordinate.world.y + BLOCK_TO_WORLD_SIZE, coordinate.world.z);
+
+            return Coordinate.FromWorld(vectorFrom);
+        }
+                
         private static List<String> usedBlockNames = new List<String>();
-        private static List<BlockProperties> availableBlockTypes;
+        private static List<BlockProperties> availableBlockTypes = new List<BlockProperties>();
+        private static Regex excludeNames = new Regex("(Technical|Block \\(|Scaffolding Base)+");
         public static List<BlockProperties> getBlockTypes()
         {
-            if (availableBlockTypes != null) return availableBlockTypes;
+            return availableBlockTypes.Count() <= 0
+                ? availableBlockTypes = BlockProperties.blocks.Where(b => checkBlockName(b)).ToList() 
+                : availableBlockTypes;
+        }
 
-            BlockProperties tempProperties;
-            String tempName;
-
-            availableBlockTypes = new List<BlockProperties>();
-
-            for (int i = 0; i < MAX_BLOCK_INDEX; i++)
+        private static bool checkBlockName(BlockProperties blockProperties)
+        {
+            if (!availableBlockTypes.Contains(blockProperties) 
+                && !usedBlockNames.Contains(blockProperties.getName())
+                && !excludeNames.IsMatch(blockProperties.getName()))
             {
-                if ((tempProperties = BlockProperties.fromID(i)) != null)
-                {
-                    tempName = tempProperties.getName().ToLower().Trim();
+                usedBlockNames.Add(blockProperties.getName());
+                return true;
+            }
+            else return false;
+        }
 
-                    if (!availableBlockTypes.Contains(tempProperties)
-                        && !usedBlockNames.Contains(tempName)
-                        && !tempName.Contains("technical")
-                        && !tempName.Contains("block (")
-                        && !tempName.Contains("scaffolding"))
-                    {
-                        usedBlockNames.Add(tempName);
-                        availableBlockTypes.Add(tempProperties);
-                    }
+        private static Regex excludeUnbuildable = new Regex("(Sand|Crop)+");
+        public static List<BlockProperties> getUnbuildableBlockTypes()
+        {
+            return getBlockTypes().Where(b => !b.isBuildable() && !excludeUnbuildable.IsMatch(b.getName())).ToList();
+        }
+
+        private static IBlockData[][] tempVariations;
+        public static int getVariationIndexFromBlock(IBlock block)
+        {
+            if (block == null || (tempVariations = block.properties.getVariations()) == null) return 0;
+
+            for (int i = 0; i < tempVariations.Count(); i++)
+            {
+                if (((BlockDataVariant)tempVariations[i][0]).variant == block.getMeta<BlockDataVariant>().variant)
+                {
+                    return i;
                 }
             }
 
-            return availableBlockTypes;
-        }
-
-        public static List<BlockProperties> getUnbuildableBlockTypes()
-        {
-            return getBlockTypes().Where(t => !t.isBuildable()
-                && !t.getName().Contains("Sand") && !t.getName().Contains("Crop")).ToList();
+            return 0;
         }
     }
 }

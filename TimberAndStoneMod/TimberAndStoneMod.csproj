@@ -53,7 +53,7 @@
     <Compile Include="Services\ResourceService.cs" />
     <Compile Include="UnitTrait.cs" />
     <Compile Include="Services\UnitService.cs" />
-    <Compile Include="Components\ModComponent.cs" />
+    <Compile Include="ModComponent.cs" />
     <Compile Include="Components\CreativeMenuComponent.cs" />
     <Compile Include="Components\CheatMenuComponent.cs" />
     <Compile Include="Components\GameSpeedComponent.cs" />

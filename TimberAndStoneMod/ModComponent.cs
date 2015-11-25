@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
+namespace Plugin.BlowyAsteroid.TimberAndStoneMod
 {
     public abstract class ModComponent : MonoBehaviour
     {
@@ -11,7 +11,15 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         public static Component addComponent(Type componentType)
         {
             return guiManager.gameObject.AddComponent(componentType);
-        }        
+        }
+
+        protected class Mouse
+        {
+            public static int LEFT = 0;
+            public static int RIGHT = 1;
+            public static int MIDDLE = 2;
+            public const String SCROLL_WHEEL = "Mouse ScrollWheel";
+        }
 
         public const float MAIN_MENU_HEADER_HEIGHT = 44f;
         public const float WINDOW_TITLE_HEIGHT = 32f;
@@ -55,12 +63,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 
         protected bool isTimeToUpdate(long ticks)
         {
-            if (previousTicks + TICKS_PER_SECOND / updatesPerSecond <= ticks)
-            {
-                previousTicks = ticks;
-            }
-
-            return previousTicks == ticks;
+            return (previousTicks = (previousTicks + TICKS_PER_SECOND / updatesPerSecond <= ticks ? ticks : previousTicks)) == ticks;           
         }       
 
         private Vector2 mousePosition = Vector2.zero;
@@ -195,7 +198,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         }
 
         private bool isScrollView = false;
-        protected Vector2 BeginScrollView(Rect scrollViewContainer, Rect scrollContainer, ref Vector2 scrollPosition)
+        protected Vector2 BeginScrollView(Rect scrollViewContainer, Rect scrollContainer)
         {
             isScrollView = true;
             scrollViewContainer.y = START_Y_WINDOW + BUTTON_HEIGHT * windowControlIndex;
@@ -217,7 +220,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
             }
             else
             {
-                parentContainer.x = Screen.width - originalWidth - BUTTON_PADDING + SCROLL_BAR_SIZE;
+                parentContainer.x = Screen.width - originalWidth - BUTTON_PADDING * 2 + SCROLL_BAR_SIZE;
                 scrollViewContainer.height = parentContainer.height - BUTTON_HEIGHT * windowControlIndex - DOUBLE_PADDING;
             }
 

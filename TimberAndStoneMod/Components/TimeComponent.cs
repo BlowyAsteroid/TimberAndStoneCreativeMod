@@ -13,7 +13,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 
         public void Start() 
         {
-            setUpdatesPerSecond(10);
+            setUpdatesPerSecond(5);
         }
 
         private double tempMinutes;
