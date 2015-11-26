@@ -17,6 +17,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
         private TerrainObjectManager terrainManager = TerrainObjectManager.getInstance();
         private ChunkManager chunkManager = ChunkManager.getInstance();
         private DesignManager designManager = DesignManager.getInstance();
+        private CraftingManager craftingManager = CraftingManager.getInstance();
 
         private BuildingService() { }        
 
@@ -83,6 +84,8 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
             return data != null ? chunkManager.SetBlock(coordinate, properties, data) : chunkManager.SetBlock(coordinate, properties);
         }
 
+
+
         private IBlock tempSmoothBlock, tempCompareBlock;
         private IBlockData tempBlockData;
         private BlockProperties tempBlockProperties;
@@ -97,9 +100,27 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
                 variationIndex = -1;
 
                 if (tempSmoothBlock.properties.GetType() != typeof(BlockAir) || !isValidCompareBlock(tempSmoothBlock.relative(0, -1, 0))) continue;
-                                
-                
-                if (isValidCompareBlock(tempSmoothBlock.relative(-1, 0, 0)))//Left
+
+
+                if (isValidInnerCornerBlock(tempSmoothBlock, 1, 1))//Front-Left-Corner
+                {
+                    variationIndex = 11;
+                }
+                else if (isValidInnerCornerBlock(tempSmoothBlock, 1, -1))//Back-Left-Corner
+                {
+                    variationIndex = 2;
+                }
+                else if (isValidInnerCornerBlock(tempSmoothBlock, -1, -1))//Front-Right-Corner
+                {
+                    variationIndex = 5;
+                }
+                else if (isValidInnerCornerBlock(tempSmoothBlock, -1, 1))//Back-Right-Corner
+                {
+                    variationIndex = 8;
+                }
+
+
+                else if (isValidCompareBlock(tempSmoothBlock.relative(-1, 0, 0)))//Left
                 {
                     variationIndex = 0;
                 }
@@ -117,49 +138,35 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
                 }
 
 
-                else if (isValidCornerBlock(tempSmoothBlock, -1, 1))//Front-Left-Corner
+                else if (isValidOuterCornerBlock(tempSmoothBlock, -1, 1))//Front-Left-Corner
                 {
                     variationIndex = 1;
                 }
-                else if (isValidCornerBlock(tempSmoothBlock, -1, -1))//Back-Left-Corner
+                else if (isValidOuterCornerBlock(tempSmoothBlock, -1, -1))//Back-Left-Corner
                 {
                     variationIndex = 10;
                 }
-                else if (isValidCornerBlock(tempSmoothBlock, 1, 1))//Front-Right-Corner
+                else if (isValidOuterCornerBlock(tempSmoothBlock, 1, 1))//Front-Right-Corner
                 {
                     variationIndex = 4;
                 }
-                else if (isValidCornerBlock(tempSmoothBlock, 1, -1))//Back-Right-Corner
+                else if (isValidOuterCornerBlock(tempSmoothBlock, 1, -1))//Back-Right-Corner
                 {
                     variationIndex = 7;
                 }
+
                 else continue;
-                
+
 
                 tempBlockProperties = tempCompareBlock.properties;
-                
-
-                if (variationIndex == 0 && isValidCompareBlock(tempSmoothBlock.relative(0, 0, -1)))//Left-Front
-                {
-                    variationIndex = 11;                   
-                }
-                else if (variationIndex == 0 && isValidCompareBlock(tempSmoothBlock.relative(0, 0, 1)))//Left-Back
-                {
-                    variationIndex = 2;
-                }
-                else if (variationIndex == 6 && isValidCompareBlock(tempSmoothBlock.relative(0, 0, -1)))//Right-Front
-                {
-                    variationIndex = 8;
-                }
-                else if (variationIndex == 6 && isValidCompareBlock(tempSmoothBlock.relative(0, 0, 1)))//Right-Back
-                {
-                    variationIndex = 5;
-                }
 
 
                 switch (tempBlockProperties.getID())
                 {
                     case 1:
+                    case 2:
+                    case 10:
+                    case 64:
                         tempBlockProperties = BlockProperties.SlopeGrass;
                         tempBlockData = tempBlockProperties.getVariations()[variationIndex][0];
                         break;
@@ -175,6 +182,13 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
                         break;
 
                     case 8:
+                    case 66: 
+                    case 67: 
+                    case 68: 
+                    case 69: 
+                    case 70: 
+                    case 71: 
+                    case 72:
                         tempBlockProperties = BlockProperties.SlopeStone;
                         tempBlockData = tempBlockProperties.getVariations()[variationIndex][0];
                         break;
@@ -184,8 +198,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
                 }
 
                 buildBlock(coordinate, tempBlockProperties, tempBlockData);
-            }
-            
+            }            
         }
 
         private bool isValidCompareBlock(IBlock block, bool includeTransparent = false)
@@ -198,21 +211,26 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
             return block.properties.getID() == 0;
         }
 
-        private bool isValidCornerBlock(IBlock block, int x, int z)
+        private bool isValidOuterCornerBlock(IBlock block, int x, int z)
         {
             return isValidCompareBlock(block.relative(x, 0, z))
                 && (block.relative(x, 0, 0).properties.isTransparent() || isValidAirBlock(block.relative(x, 0, 0)))
                 && (block.relative(0, 0, z).properties.isTransparent() || isValidAirBlock(block.relative(0, 0, z)));
         }
 
-
+        private bool isValidInnerCornerBlock(IBlock block, int x, int z)
+        {
+            return isValidCompareBlock(block.relative(-x, 0, 0))
+                && isValidCompareBlock(block.relative(0, 0, -z))
+                && (block.relative(x, 0, 0).properties.isTransparent() || isValidAirBlock(block.relative(x, 0, 0)))
+                && (block.relative(0, 0, z).properties.isTransparent() || isValidAirBlock(block.relative(0, 0, z)));
+        }
 
 
 
         private IBlock tempReplaceBlock;
         private IBlockData tempReplaceBlockData;
         private BlockProperties tempReplaceBlockProperties;
-        private int tempReplaceVariationIndex;
         private List<IBlock> replacedBlocks = new List<IBlock>();
         public List<IBlock> replaceBlocks(List<Coordinate> coordinates, BlockProperties properties, IBlockData data = null)
         {
@@ -336,6 +354,69 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
         {
             terrainManager.RemoveShrub(shrub, 1);
             return true;
+        }
+
+        private TreeFlora tempAddTree;
+        private Transform tempTreeTransform;
+        public void addTree(Coordinate coordinate)
+        {
+            tempTreeTransform = ModUtils.createTransform(terrainManager.treeObject);
+            tempTreeTransform.transform.parent = getChunkData(coordinate).chunkObj.transform;
+            tempTreeTransform.localPosition = getLocalPositionFromBlockPosition(coordinate.block);
+
+            tempAddTree = tempTreeTransform.GetComponent<TreeFlora>();
+            tempAddTree.blockPos = coordinate.block;
+            tempAddTree.chunkPos = coordinate.chunk;
+            tempAddTree.health = 100f;
+
+            terrainManager.AddTree(tempAddTree);
+            tempAddTree.Init();
+        }
+
+        private Shrub tempAddShrub;
+        private Transform tempShrubTransform;
+        public void addShrub(Coordinate coordinate)
+        {
+            tempShrubTransform = ModUtils.createTransform(terrainManager.shrubObject);
+            tempShrubTransform.transform.parent = getChunkData(coordinate).chunkObj.transform;
+            tempShrubTransform.localPosition = getLocalPositionFromBlockPosition(coordinate.block);
+
+            tempAddShrub = tempShrubTransform.GetComponent<Shrub>();
+            tempAddShrub.blockPos = coordinate.block;
+            tempAddShrub.chunkPos = coordinate.chunk;
+            tempAddShrub.health = 100f;
+            tempAddShrub.berryCount = 50;
+
+            terrainManager.AddShrub(tempAddShrub);
+            tempAddShrub.Init(false);
+        }
+
+        private ChunkData getChunkData(Coordinate coordinate)
+        {
+            return chunkManager.chunkArray[coordinate.chunk.x, coordinate.chunk.y, coordinate.chunk.z];
+        }
+
+        private Vector3 tempLocalPosition = Vector3.zero;
+        private Vector3 getLocalPositionFromBlockPosition(Vector3 blockPosition, float offsetY = 0.0f)
+        {
+            tempLocalPosition.Set(getVoxelTranslatedValue(blockPosition.x), getVoxelTranslatedValue(blockPosition.y + offsetY), getVoxelTranslatedValue(blockPosition.z));
+            
+            return tempLocalPosition;
+        }
+
+        private float getVoxelTranslatedValue(float value)
+        {
+            return (float)((double)value * (double)chunkManager.voxelSize + (double)chunkManager.voxelSize / 2.0);
+        }
+
+        
+        
+        public void buildStructure(ref BuildStructure structure)
+        {
+            structure.isBuilt = true;
+            structure.buildProgress = 100f;
+            structure.health = 100f;
+            structure.RenderTextured();
         }
     }
 }

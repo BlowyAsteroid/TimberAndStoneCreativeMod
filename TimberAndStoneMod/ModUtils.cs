@@ -113,5 +113,15 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
 
             return 0;
         }
+
+        public static Transform createTransform(UnityEngine.Object unityObject)
+        {
+            return UnityEngine.Object.Instantiate(unityObject, Vector3.zero, Quaternion.identity) as Transform;
+        }
+
+        public static Transform createTransform(UnityEngine.Object unityObject, Vector3 position, Quaternion rotation)
+        {
+            return UnityEngine.Object.Instantiate(unityObject, position, rotation) as Transform;
+        }
     }
 }
