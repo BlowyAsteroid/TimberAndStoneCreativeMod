@@ -360,9 +360,14 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
         private Transform tempTreeTransform;
         public void addTree(Coordinate coordinate)
         {
+            if (!isValidAirBlock(tempShrubBlock = getBlock(coordinate)))
+            {
+                coordinate = tempShrubBlock.relative(0, 1, 0).coordinate;
+            }
+
             tempTreeTransform = ModUtils.createTransform(terrainManager.treeObject);
             tempTreeTransform.transform.parent = getChunkData(coordinate).chunkObj.transform;
-            tempTreeTransform.localPosition = getLocalPositionFromBlockPosition(coordinate.block);
+            tempTreeTransform.position = coordinate.world;
 
             tempAddTree = tempTreeTransform.GetComponent<TreeFlora>();
             tempAddTree.blockPos = coordinate.block;
@@ -375,11 +380,17 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 
         private Shrub tempAddShrub;
         private Transform tempShrubTransform;
+        private IBlock tempShrubBlock;
         public void addShrub(Coordinate coordinate)
         {
+            if (!isValidAirBlock(tempShrubBlock = getBlock(coordinate)))
+            {
+                coordinate = tempShrubBlock.relative(0, 1, 0).coordinate;
+            }
+
             tempShrubTransform = ModUtils.createTransform(terrainManager.shrubObject);
             tempShrubTransform.transform.parent = getChunkData(coordinate).chunkObj.transform;
-            tempShrubTransform.localPosition = getLocalPositionFromBlockPosition(coordinate.block);
+            tempShrubTransform.position = coordinate.world;
 
             tempAddShrub = tempShrubTransform.GetComponent<Shrub>();
             tempAddShrub.blockPos = coordinate.block;
@@ -394,22 +405,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
         private ChunkData getChunkData(Coordinate coordinate)
         {
             return chunkManager.chunkArray[coordinate.chunk.x, coordinate.chunk.y, coordinate.chunk.z];
-        }
-
-        private Vector3 tempLocalPosition = Vector3.zero;
-        private Vector3 getLocalPositionFromBlockPosition(Vector3 blockPosition, float offsetY = 0.0f)
-        {
-            tempLocalPosition.Set(getVoxelTranslatedValue(blockPosition.x), getVoxelTranslatedValue(blockPosition.y + offsetY), getVoxelTranslatedValue(blockPosition.z));
-            
-            return tempLocalPosition;
-        }
-
-        private float getVoxelTranslatedValue(float value)
-        {
-            return (float)((double)value * (double)chunkManager.voxelSize + (double)chunkManager.voxelSize / 2.0);
-        }
-
-        
+        }        
         
         public void buildStructure(ref BuildStructure structure)
         {
@@ -417,6 +413,8 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
             structure.buildProgress = 100f;
             structure.health = 100f;
             structure.RenderTextured();
+            structure.HideAccessPoints();
+            structure.AddBlocks(98);
         }
     }
 }

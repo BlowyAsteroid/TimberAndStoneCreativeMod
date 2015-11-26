@@ -273,7 +273,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 {
                     doBuildStructures = false;
                     //Build Non-Built Structures
-                    controlPlayer.structures.ToList().ForEach(s => buildingService.buildStructure(ref s));                                 
+                    controlPlayer.structures.Where(s => !s.isBuilt).ToList().ForEach(s => buildingService.buildStructure(ref s));                                 
                 }
                 else if (doReplaceBlocks)
                 {
