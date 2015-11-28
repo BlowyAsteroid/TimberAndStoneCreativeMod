@@ -2,14 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using Timber_and_Stone;
+using Timber_and_Stone.API;
 using Timber_and_Stone.Invasion;
+using Timber_and_Stone.Utility;
 using UnityEngine;
 
 namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 {
     public class UnitService
     {
-        private static UnitService instance = new UnitService();
+        private static readonly UnitService instance = new UnitService();
         public static UnitService getInstance() { return instance; }
 
         public static bool isFriendly(ALivingEntity entity)
@@ -92,7 +94,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 
         public APlayableEntity addUnit(UnitProfession profession, Vector3 position, bool autoAccept = false)
         {
-            APlayableEntity entity = unitManager.AddHumanUnit(profession.Name, position, 
+            APlayableEntity entity = unitManager.AddHumanUnit(profession.Name.ToLower(), position, 
                 true, !autoAccept, UnityEngine.Random.Range(0, 3) == 1).GetComponent<APlayableEntity>();
 
             unitManager.AddMigrantResources(entity);
@@ -190,6 +192,76 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 
                 originalProfessions.Remove(entity);
             }
+        }
+
+
+
+        private BuildingService buildingSerive = BuildingService.getInstance();
+        IBlock tempEnemyBlock;
+        public ALivingEntity addEnemy(EnemyUnit type, Vector3 position)
+        {
+            if(type == null || position == null) return null;
+
+            ALivingEntity entity = null;
+
+            switch (type.Name)
+            {
+                case EnemyUnit.GOBLIN:
+                    entity = createGoblinUnit();
+                    break;
+
+                case EnemyUnit.SKELETON:
+                    entity = createSkeletonUnit();
+                    break;
+
+                case EnemyUnit.NECROMANCER:
+                    entity = createNecromancerUnit();
+                    break;
+            }
+
+            Coordinate coordinate = Coordinate.FromWorld(position);
+            if ((tempEnemyBlock = buildingSerive.getBlock(coordinate)).properties.getID() != 0)
+            {
+                coordinate = tempEnemyBlock.relative(0, 1, 0).coordinate;
+            }
+
+            entity.coordinate = coordinate;
+
+            return entity;
+        }
+
+        private AssetManager assetManager = AssetManager.getInstance();
+        private ALivingEntity createGoblinUnit()
+        {
+            GoblinEntity unit = assetManager.InstantiateUnit<GoblinEntity>();
+            unit.addProfession((AProfession)new Timber_and_Stone.Profession.Goblin.Infantry(unit, 100));
+            unit.faction = (IFaction)worldManager.GoblinFaction;
+            return unit;
+        }
+
+        private ALivingEntity createSkeletonUnit()
+        {
+            SkeletonEntity unit = assetManager.InstantiateUnit<SkeletonEntity>();
+            unit.addProfession((AProfession)new Timber_and_Stone.Profession.Undead.Infantry(unit, 100));
+            unit.faction = (IFaction)worldManager.UndeadFaction;
+            return unit;
+        }
+
+        private ALivingEntity createNecromancerUnit()
+        {
+            NecromancerEntity unit = assetManager.InstantiateUnit<NecromancerEntity>();
+            unit.addProfession((AProfession)new Timber_and_Stone.Profession.Undead.Infantry(unit, 100));
+            unit.faction = (IFaction)worldManager.UndeadFaction;
+            return unit;
+        }
+
+
+        private void equipEnemyUnit(APlayableEntity entity)
+        {
+            entity.inventory.Add(Resource.FromID(152), 1);
+            entity.inventory.Add(Resource.FromID(154), 1);
+            entity.inventory.Add(Resource.FromID(171), 1);
+            entity.inventory.Add(Resource.FromID(Extension_Methods.RandomElement<int>(AManager<ResourceManager>.getInstance().listIndexArrowBest)), UnityEngine.Random.Range(6, 23));
         }
     }
 }

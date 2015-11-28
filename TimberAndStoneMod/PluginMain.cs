@@ -53,7 +53,6 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
             if (!ModSettings.isPreventDeathEnabled || evt.result != Result.Deny) return;
                         
             ALivingEntity unit = evt.getUnit();
-            bool isMurder = unit.hitpoints <= 0;
             bool isStarvation = unit.hitpoints > 0 && unit.hunger <= 0;
 
             unit.hitpoints = unit.maxHP;

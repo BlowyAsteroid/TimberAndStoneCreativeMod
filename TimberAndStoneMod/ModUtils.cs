@@ -82,11 +82,20 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
 
         private static bool checkBlockName(BlockProperties blockProperties)
         {
-            if (!availableBlockTypes.Contains(blockProperties) 
-                && !usedBlockNames.Contains(blockProperties.getName())
-                && !excludeNames.IsMatch(blockProperties.getName()))
+            if (isBuildable(blockProperties)
+                && !availableBlockTypes.Contains(blockProperties)
+                && !usedBlockNames.Contains(blockProperties.getName()))
             {
                 usedBlockNames.Add(blockProperties.getName());
+                return true;
+            }
+            else return false;
+        }
+
+        public static bool isBuildable(BlockProperties blockProperties)
+        {
+            if (!excludeNames.IsMatch(blockProperties.getName()))
+            {
                 return true;
             }
             else return false;

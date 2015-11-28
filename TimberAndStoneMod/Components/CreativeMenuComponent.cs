@@ -26,6 +26,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         private static readonly float CONTAINER_HEIGHT = WINDOW_TITLE_HEIGHT;
 
         private BuildingService buildingService = BuildingService.getInstance();
+        private UnitService unitService = UnitService.getInstance();
 
         private Rect parentContainer = new Rect(
             Screen.width - CONTAINER_WIDTH - BUTTON_PADDING * 2, 
@@ -75,6 +76,17 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         private bool isMouseInGUIOverride = false;
         private bool isScrollOverride = false;
 
+
+        private UnitProfession selectedUnitType;
+        private bool isSelectingUnitType = false;
+        private bool isPlacingUnit = false;
+        private bool doPlaceUnit = false;
+
+        private EnemyUnit selectedEnemyType;
+        private bool isSelectingEnemyType = false;
+        private bool isPlacingEnemy = false;
+        private bool doPlaceEnemy = false;
+
         public void Start()
         {
             setUpdatesPerSecond(5);
@@ -83,6 +95,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         }
 
         private IBlock tempBlock;
+        private bool shiftClickUp = false;
         public void Update()
         {         
             if (isComponentVisible)
@@ -99,8 +112,28 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                     controlPlayer.StartDesigning(controlPlayer.designType);
                 }
                 else
-                {
+                {                   
                     controlPlayer.CancelDesigning(true);
+
+                    if (isPlacingUnit)
+                    {
+                        isPlacingUnit = false;
+                        selectedUnitType = null;
+                    }
+                    else if (isSelectingUnitType)
+                    {
+                        isSelectingUnitType = false;
+                    }
+
+                    if (isPlacingEnemy)
+                    {
+                        isPlacingEnemy = false;
+                        selectedEnemyType = null;
+                    }
+                    else if (isSelectingEnemyType)
+                    {
+                        isSelectingEnemyType = false;
+                    }
                 }
 
                 isMouseInGUIOverride = false;
@@ -108,18 +141,38 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 
             if (isCreativeEnabled)
             {
-                if (isStructuring && isDesigning)
+                shiftClickUp = (Input.GetMouseButtonUp(Mouse.LEFT) && Input.GetKey(KeyCode.LeftShift));
+
+                if (isStructuring && isDesigning && !shiftClickUp)
                 {
                     hasBuiltStructures = false;                      
                 }
                 else if (!hasBuiltStructures)
                 {
-                    hasBuiltStructures = true;
-                    doBuildStructures = true;
-                }                
+                    if (!shiftClickUp)
+                    {
+                        hasBuiltStructures = true;
+                    }
 
-                if (!isSelecting)
+                    doBuildStructures = true;
+                }
+
+                if (isPlacingUnit)
                 {
+                    if (Input.GetKeyUp(PRIMARY_KEY))
+                    {
+                        doPlaceUnit = true;
+                    }
+                }
+                else if (isPlacingEnemy)
+                {
+                    if (Input.GetKeyUp(PRIMARY_KEY))
+                    {
+                        doPlaceEnemy = true;
+                    }
+                }
+                else if (!isSelecting)
+                {    
                     if (Input.GetKeyUp(CHANGE_VIEW_KEY))
                     {
                         controlPlayer.SwitchCamera();
@@ -156,18 +209,17 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                             tempBlock = tempBlock.relative(0, -1, 0);
                         }
 
-                        updateControlPlayerBlockProperties(tempBlock.properties, tempBlock);
-                        controlPlayer.StartDesigning(eDesignType.BUILD);
+                        if (ModUtils.isBuildable(tempBlock.properties))
+                        {
+                            updateControlPlayerBlockProperties(tempBlock.properties, tempBlock);
+                            controlPlayer.StartDesigning(eDesignType.BUILD);
+                        }
 
                         if (Input.GetKey(KeyCode.LeftControl))
                         {
                             log("ID: " + tempBlock.properties.getID());
                         }
                     }
-                }
-                else if (!isDesigning && !isSelecting)
-                {
-                    
                 }
                 else if (isSelecting)
                 {
@@ -228,7 +280,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                     {
                         hasRemovedTrees = false;                 
                     }
-                }
+                }                
 
                 if (!hasRemovedTrees && !isSelecting)
                 {
@@ -312,6 +364,18 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                     //Remove All Trees
                     buildingService.removeAllTreeItems();
                 }
+                else if (doPlaceUnit)
+                {
+                    doPlaceUnit = false;
+                    //Place Selected Unit Type At Mouse Position
+                    unitService.addUnit(selectedUnitType, controlPlayer.WorldPositionAtMouse(), true);
+                }
+                else if (doPlaceEnemy)
+                {
+                    doPlaceEnemy = false;
+                    //Place Selected Enemy Type At Mouse Position
+                    unitService.addEnemy(selectedEnemyType, controlPlayer.WorldPositionAtMouse());
+                }
                 else if (doSaveGame)
                 {
                     doSaveGame = false;
@@ -346,7 +410,18 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 
             if (isCreativeEnabled)
             {
-                if (isBuilding)
+                if (isPlacingUnit)
+                {
+                    Label("Placing: " + selectedUnitType.Name);
+                    Label(getKeyString(PRIMARY_KEY) + " To Place");
+                }
+                else if (isPlacingEnemy)
+                {
+                    Label("Placing: " + selectedEnemyType.Name);
+                    Label(getKeyString(PRIMARY_KEY) + " To Place");
+                }
+
+                else if (isBuilding)
                 {
                     if (isSelecting)
                     {
@@ -392,12 +467,46 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                         Button("Remove All Trees", ref doRemoveAllTrees);
                     }
                 }
-                else if(!isSelecting && !isDesigning)
+                else if(!isSelecting && !isDesigning && !isSelectingUnitType && !isSelectingEnemyType)
                 {
                     if (Time.timeSinceLevelLoad > 12f)
                     {
                         Button("Save Game", ref doSaveGame);
-                    }                    
+                    }
+
+                    if (Button("Place Units"))
+                    {
+                        isSelectingUnitType = true;
+                    }
+
+                    if (Button("Place Enemies"))
+                    {
+                        isSelectingEnemyType = true;
+                    }
+                }
+                else if (isSelectingUnitType && !isPlacingUnit)
+                {
+                    //Place Unit List
+                    foreach (UnitProfession profession in UnitProfession.List)
+                    {
+                        if (Button(profession.Name))
+                        {
+                            selectedUnitType = profession;
+                            isPlacingUnit = true;
+                        }
+                    }
+                }
+                else if (isSelectingEnemyType && !isPlacingEnemy)
+                {
+                    //Place Enemy List
+                    foreach (EnemyUnit enemyType in EnemyUnit.List)
+                    {
+                        if (Button(enemyType.Name))
+                        {
+                            selectedEnemyType = enemyType;
+                            isPlacingEnemy = true;
+                        }
+                    }
                 }
             }
 

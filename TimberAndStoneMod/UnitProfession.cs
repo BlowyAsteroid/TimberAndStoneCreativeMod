@@ -7,20 +7,20 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
     {
         public const int MAX_LEVEL = 20;
 
-        public static UnitProfession Archer = new UnitProfession("archer");
-        public static UnitProfession Blacksmith = new UnitProfession("blacksmith");
-        public static UnitProfession Builder = new UnitProfession("builder");
-        public static UnitProfession Carpenter = new UnitProfession("carpenter");
-        public static UnitProfession Farmer = new UnitProfession("farmer");
-        public static UnitProfession Fisherman = new UnitProfession("fisherman");
-        public static UnitProfession Forager = new UnitProfession("forager");
-        public static UnitProfession Herder = new UnitProfession("herder");
-        public static UnitProfession Infantry = new UnitProfession("infantry");
-        public static UnitProfession Miner = new UnitProfession("miner");
-        public static UnitProfession StoneMason = new UnitProfession("stone mason");
-        public static UnitProfession Tailor = new UnitProfession("tailor");
-        public static UnitProfession Trader = new UnitProfession("trader");
-        public static UnitProfession WoodChopper = new UnitProfession("wood chopper");
+        public static UnitProfession Archer = new UnitProfession("Archer");
+        public static UnitProfession Blacksmith = new UnitProfession("Blacksmith");
+        public static UnitProfession Builder = new UnitProfession("Builder");
+        public static UnitProfession Carpenter = new UnitProfession("Carpenter");
+        public static UnitProfession Farmer = new UnitProfession("Farmer");
+        public static UnitProfession Fisherman = new UnitProfession("Fisherman");
+        public static UnitProfession Forager = new UnitProfession("Forager");
+        public static UnitProfession Herder = new UnitProfession("Herder");
+        public static UnitProfession Infantry = new UnitProfession("Infantry");
+        public static UnitProfession Miner = new UnitProfession("Miner");
+        public static UnitProfession StoneMason = new UnitProfession("Stone Mason");
+        public static UnitProfession Tailor = new UnitProfession("Tailor");
+        public static UnitProfession Trader = new UnitProfession("Trader");
+        public static UnitProfession WoodChopper = new UnitProfession("Wood Chopper");
 
         public static UnitProfession[] List = new UnitProfession[]{
             Archer, Blacksmith, Builder, Carpenter, Farmer, Fisherman, 
