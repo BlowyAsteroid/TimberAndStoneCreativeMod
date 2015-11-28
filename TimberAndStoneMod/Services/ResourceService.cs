@@ -5,7 +5,7 @@ using Timber_and_Stone;
 
 namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 {
-    public class ResourceService
+    public sealed class ResourceService
     {
         private static ResourceService instance = new ResourceService();
         public static ResourceService getInstance() { return instance; }

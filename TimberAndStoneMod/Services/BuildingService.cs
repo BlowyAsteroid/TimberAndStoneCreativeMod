@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 {
-    public class BuildingService
+    public sealed class BuildingService
     {
         private static BuildingService instance = new BuildingService();
         public static BuildingService getInstance() { return instance; }

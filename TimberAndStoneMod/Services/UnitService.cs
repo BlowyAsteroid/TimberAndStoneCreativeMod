@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 {
-    public class UnitService
+    public sealed class UnitService
     {
         private static readonly UnitService instance = new UnitService();
         public static UnitService getInstance() { return instance; }
@@ -206,12 +206,32 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 
             switch (type.Name)
             {
-                case EnemyUnit.GOBLIN:
+                case EnemyUnit.GOBLIN_UNARMED:
                     entity = createGoblinUnit();
                     break;
 
-                case EnemyUnit.SKELETON:
+                case EnemyUnit.GOBLIN_INFANTRY:
+                    entity = createGoblinUnit();
+                    equipGoblin(entity);
+                    break;
+
+                case EnemyUnit.GOBLIN_ARCHER:
+                    entity = createGoblinUnit();
+                    equipGoblin(entity, true);
+                    break;
+
+                case EnemyUnit.SKELETON_UNARMED:
                     entity = createSkeletonUnit();
+                    break;
+
+                case EnemyUnit.SKELETON_INFANTRY:
+                    entity = createSkeletonUnit();
+                    equipSkeleton(entity);
+                    break;
+
+                case EnemyUnit.SKELETON_ARCHER:
+                    entity = createSkeletonUnit();
+                    equipSkeleton(entity, true);
                     break;
 
                 case EnemyUnit.NECROMANCER:
@@ -255,13 +275,29 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
             return unit;
         }
 
-
-        private void equipEnemyUnit(APlayableEntity entity)
+        private ResourceManager resourceManager = ResourceManager.getInstance();
+        private void equipGoblin(ALivingEntity entity, bool addBow = false)
         {
-            entity.inventory.Add(Resource.FromID(152), 1);
-            entity.inventory.Add(Resource.FromID(154), 1);
-            entity.inventory.Add(Resource.FromID(171), 1);
-            entity.inventory.Add(Resource.FromID(Extension_Methods.RandomElement<int>(AManager<ResourceManager>.getInstance().listIndexArrowBest)), UnityEngine.Random.Range(6, 23));
+            entity.inventory.Add(UnityEngine.Random.Range(150, 152 + 1), 1);
+            entity.inventory.Add(UnityEngine.Random.Range(170, 171 + 1), 1);
+
+            if (addBow)
+            {
+                entity.inventory.Add(UnityEngine.Random.Range(153, 154 + 1), 1);
+                entity.inventory.Add(Resource.FromID(Extension_Methods.RandomElement<int>(resourceManager.listIndexArrowBest)), UnityEngine.Random.Range(6, 23));        
+            }
+        }
+
+        private void equipSkeleton(ALivingEntity entity, bool addBow = false)
+        {
+            entity.inventory.Add(UnityEngine.Random.Range(180, 181 + 1), 1);
+            entity.inventory.Add(190, 1);
+
+            if (addBow)
+            {
+                entity.inventory.Add(182, 1);
+                entity.inventory.Add(Resource.FromID(Extension_Methods.RandomElement<int>(resourceManager.listIndexArrowBest)), UnityEngine.Random.Range(6, 23));
+            }
         }
     }
 }
