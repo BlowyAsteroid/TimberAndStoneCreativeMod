@@ -442,15 +442,15 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 
             if (isCreativeEnabled)
             {
-                if (isSelectingHumanType)
+                if (isSelectingHumanType && !isPlacingHuman)
                 {
                     Label("Player Units");
                 }
-                else if (isSelectingFriendlyType)
+                else if (isSelectingFriendlyType && !isPlacingNeutral)
                 {
                     Label("Friendly NPCs");
                 }
-                else if (isSelectingEnemyType)
+                else if (isSelectingEnemyType && !isPlacingEnemy)
                 {
                     Label("Enemy NPCs");
                 }
@@ -461,12 +461,12 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 }
                 else if (isPlacingNeutral)
                 {
-                    Label(selectedNeutralType.Name);
+                    Label("Friendly: " + selectedNeutralType.Name);
                     Label(getKeyString(PRIMARY_KEY) + " To Place");
                 }
                 else if (isPlacingEnemy)
                 {
-                    Label(selectedEnemyType.Name);
+                    Label("Enemy: " + selectedEnemyType.Name);
                     Label(getKeyString(PRIMARY_KEY) + " To Place");
                 }
 
