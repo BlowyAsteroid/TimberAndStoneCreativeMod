@@ -11,6 +11,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         public static UnitProfession Blacksmith = new UnitProfession("Blacksmith");
         public static UnitProfession Builder = new UnitProfession("Builder");
         public static UnitProfession Carpenter = new UnitProfession("Carpenter");
+        public static UnitProfession Engineer = new UnitProfession("Engineer");
         public static UnitProfession Farmer = new UnitProfession("Farmer");
         public static UnitProfession Fisherman = new UnitProfession("Fisherman");
         public static UnitProfession Forager = new UnitProfession("Forager");
@@ -23,7 +24,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         public static UnitProfession WoodChopper = new UnitProfession("Wood Chopper");
 
         public static UnitProfession[] List = new UnitProfession[]{
-            Archer, Blacksmith, Builder, Carpenter, Farmer, Fisherman, 
+            Archer, Blacksmith, Builder, Carpenter, Engineer, Farmer, Fisherman, 
             Forager, Herder, Infantry, Miner, StoneMason, Tailor, Trader, WoodChopper
         };
 

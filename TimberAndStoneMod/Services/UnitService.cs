@@ -4,6 +4,7 @@ using System.Linq;
 using Timber_and_Stone;
 using Timber_and_Stone.API;
 using Timber_and_Stone.Invasion;
+using Timber_and_Stone.Profession.Human;
 using Timber_and_Stone.Utility;
 using UnityEngine;
 
@@ -16,7 +17,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 
         public static bool isFriendly(ALivingEntity entity)
         {
-            return instance.getUnitAlignment(entity) == Alignment.Ally;
+            return instance.getUnitAlignment(entity) == Alignment.Ally || instance.getUnitAlignment(entity) == Alignment.Neutral;
         }
 
         private const int MAX_SPAWN_ATTEMPTS = 5;
@@ -31,6 +32,8 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
         private UnitManager unitManager = UnitManager.getInstance();
         private WorldManager worldManager = WorldManager.getInstance();
         private DesignManager designManager = DesignManager.getInstance();
+        private ResourceManager resourceManager = ResourceManager.getInstance();
+        private AssetManager assetManager = AssetManager.getInstance();
 
         private UnitService() { }
 
@@ -84,7 +87,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 
         public APlayableEntity spawnMigrant()
         {
-            return designManager.edgeRoads.Count > 0 ? addUnit(UnitProfession.Random, getRandomRoadPosition()) : null;
+            return designManager.edgeRoads.Count > 0 ? addHuman(UnitProfession.Random, getRandomRoadPosition()) : null;
         }
 
         public IInvasion spawnInvasion()
@@ -92,8 +95,8 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
             return worldManager.SpawnInvasion();
         }
 
-        public APlayableEntity addUnit(UnitProfession profession, Vector3 position, bool autoAccept = false)
-        {
+        public APlayableEntity addHuman(UnitProfession profession, Vector3 position, bool autoAccept = false)
+        {            
             APlayableEntity entity = unitManager.AddHumanUnit(profession.Name.ToLower(), position, 
                 true, !autoAccept, UnityEngine.Random.Range(0, 3) == 1).GetComponent<APlayableEntity>();
 
@@ -102,13 +105,108 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
             return entity;
         }
 
+        public ALivingEntity addNeutral(NeutralUnit profession, Vector3 position)
+        {
+            if (profession == null || position == null) return null;
+
+            ALivingEntity entity = null;
+
+            switch (profession.Name)
+            {
+                case NeutralUnit.HUMAN_INFANTRY:
+                    entity = createHumanUnit();
+                    equipHuman(entity);
+                    entity.unitName = NeutralUnit.HUMAN_INFANTRY;
+                    break;
+
+                case NeutralUnit.HUMAN_ARCHER:
+                    entity = createHumanUnit(isArcher: true);
+                    equipHuman(entity, true);
+                    entity.unitName = NeutralUnit.HUMAN_ARCHER;
+                    break;
+
+                case NeutralUnit.GOBLIN_INFANTRY:
+                    entity = createGoblinUnit();
+                    equipGoblin(entity);
+                    entity.unitName = NeutralUnit.GOBLIN_INFANTRY;
+                    break;
+
+                case NeutralUnit.GOBLIN_ARCHER:
+                    entity = createGoblinUnit();
+                    equipGoblin(entity, true);
+                    entity.unitName = NeutralUnit.GOBLIN_ARCHER;
+                    break;
+
+                case NeutralUnit.SKELETON_INFANTRY:
+                    entity = createSkeletonUnit();
+                    equipSkeleton(entity);
+                    entity.unitName = NeutralUnit.SKELETON_INFANTRY;
+                    break;
+
+                case NeutralUnit.SKELETON_ARCHER:
+                    entity = createSkeletonUnit();
+                    equipSkeleton(entity, true);
+                    entity.unitName = NeutralUnit.SKELETON_ARCHER;
+                    break;
+            }
+
+            entity.faction = worldManager.MigrantFaction;
+
+            Coordinate coordinate = Coordinate.FromWorld(position);
+            if ((tempEnemyBlock = buildingSerive.getBlock(coordinate)).properties.getID() != 0)
+            {
+                coordinate = tempEnemyBlock.relative(0, 1, 0).coordinate;
+            }
+
+            entity.coordinate = coordinate;
+
+            return entity;
+        }
+
+        public APlayableEntity addGoblinMercenary(Vector3 position)
+        {
+            GoblinEntity entity = assetManager.InstantiateUnit<GoblinEntity>();
+            entity.addProfession(new Timber_and_Stone.Profession.Goblin.Infantry(entity, UnityEngine.Random.Range(300, 500)));
+            entity.name = "Goblin Mercenary";
+
+            equipGoblin(entity, UnityEngine.Random.Range(1, 3) == 1);
+            updateMercenary(entity, position);
+
+            return entity;
+        }
+
+        public APlayableEntity addSkeletonMercenary(Vector3 position)
+        {
+            SkeletonEntity entity = assetManager.InstantiateUnit<SkeletonEntity>();
+            entity.addProfession(new Timber_and_Stone.Profession.Undead.Infantry(entity, UnityEngine.Random.Range(300, 500)));
+            entity.name = "Skeleton Mercenary";
+
+            equipSkeleton(entity, UnityEngine.Random.Range(1, 3) == 1);
+            updateMercenary(entity, position);
+
+            return entity;
+        }
+
+        private void updateMercenary(APlayableEntity entity, Vector3 position)
+        {
+            Coordinate coordinate = Coordinate.FromWorld(position);
+            if ((tempEnemyBlock = buildingSerive.getBlock(coordinate)).properties.getID() != 0)
+            {
+                coordinate = tempEnemyBlock.relative(0, 1, 0).coordinate;
+            }
+
+            entity.coordinate = coordinate;
+            entity.faction = worldManager.PlayerFaction;
+
+            unitManager.AddMigrantResources(entity);
+        }
+
         public Vector3 getRandomRoadPosition()
         {
             return designManager.edgeRoads.Count > 0 
                 ? designManager.edgeRoads[UnityEngine.Random.Range(0, designManager.edgeRoads.Count)].world
                 : Vector3.zero;
         }
-
 
         APlayableEntity.Preferences originalPreferences;
         public void setBestTraits(APlayableEntity entity)
@@ -206,8 +304,16 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 
             switch (type.Name)
             {
-                case EnemyUnit.GOBLIN_UNARMED:
-                    entity = createGoblinUnit();
+                case EnemyUnit.HUMAN_INFANTRY:
+                    entity = createHumanUnit();
+                    equipHuman(entity);
+                    entity.name = EnemyUnit.HUMAN_INFANTRY;
+                    break;
+
+                case EnemyUnit.HUMAN_ARCHER:
+                    entity = createHumanUnit(isArcher: true);
+                    equipHuman(entity, true);
+                    entity.name = EnemyUnit.HUMAN_ARCHER;
                     break;
 
                 case EnemyUnit.GOBLIN_INFANTRY:
@@ -218,10 +324,6 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
                 case EnemyUnit.GOBLIN_ARCHER:
                     entity = createGoblinUnit();
                     equipGoblin(entity, true);
-                    break;
-
-                case EnemyUnit.SKELETON_UNARMED:
-                    entity = createSkeletonUnit();
                     break;
 
                 case EnemyUnit.SKELETON_INFANTRY:
@@ -250,32 +352,52 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
             return entity;
         }
 
-        private AssetManager assetManager = AssetManager.getInstance();
+        private ALivingEntity createHumanUnit(bool isArcher = false)
+        {
+            HumanEntity unit = assetManager.InstantiateUnit<HumanEntity>();
+            
+            if (isArcher)
+            {
+                unit.addProfession(new Timber_and_Stone.Profession.Human.Archer(unit, 100));
+            }
+            else unit.addProfession(new Timber_and_Stone.Profession.Human.Infantry(unit, 100));
+
+            unit.unitName = "Human";
+            unit.faction = worldManager.NeutralHostileFaction;
+
+            return unit;
+        }
+
         private ALivingEntity createGoblinUnit()
         {
             GoblinEntity unit = assetManager.InstantiateUnit<GoblinEntity>();
-            unit.addProfession((AProfession)new Timber_and_Stone.Profession.Goblin.Infantry(unit, 100));
-            unit.faction = (IFaction)worldManager.GoblinFaction;
+            unit.addProfession(new Timber_and_Stone.Profession.Goblin.Infantry(unit, 100));
+            
+            unit.faction = worldManager.GoblinFaction;           
+
             return unit;
         }
 
         private ALivingEntity createSkeletonUnit()
         {
             SkeletonEntity unit = assetManager.InstantiateUnit<SkeletonEntity>();
-            unit.addProfession((AProfession)new Timber_and_Stone.Profession.Undead.Infantry(unit, 100));
-            unit.faction = (IFaction)worldManager.UndeadFaction;
+            unit.addProfession(new Timber_and_Stone.Profession.Undead.Infantry(unit, 100));
+
+            unit.faction = worldManager.UndeadFaction;
+
             return unit;
         }
 
         private ALivingEntity createNecromancerUnit()
         {
             NecromancerEntity unit = assetManager.InstantiateUnit<NecromancerEntity>();
-            unit.addProfession((AProfession)new Timber_and_Stone.Profession.Undead.Infantry(unit, 100));
-            unit.faction = (IFaction)worldManager.UndeadFaction;
+            unit.addProfession(new Timber_and_Stone.Profession.Undead.Infantry(unit, 100));
+           
+            unit.faction = worldManager.UndeadFaction;
+
             return unit;
         }
-
-        private ResourceManager resourceManager = ResourceManager.getInstance();
+        
         private void equipGoblin(ALivingEntity entity, bool addBow = false)
         {
             entity.inventory.Add(UnityEngine.Random.Range(150, 152 + 1), 1);
@@ -296,6 +418,19 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
             if (addBow)
             {
                 entity.inventory.Add(182, 1);
+                entity.inventory.Add(Resource.FromID(Extension_Methods.RandomElement<int>(resourceManager.listIndexArrowBest)), UnityEngine.Random.Range(6, 23));
+            }
+        }
+
+        private void equipHuman(ALivingEntity entity, bool addBow = false)
+        {
+            entity.inventory.Add(4, 5);
+            entity.inventory.Add(90, 1);
+            entity.inventory.Add(137, 1);
+
+            if (addBow)
+            {
+                entity.inventory.Add(96, 1);
                 entity.inventory.Add(Resource.FromID(Extension_Methods.RandomElement<int>(resourceManager.listIndexArrowBest)), UnityEngine.Random.Range(6, 23));
             }
         }

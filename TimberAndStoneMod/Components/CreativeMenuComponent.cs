@@ -46,12 +46,13 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
             CONTAINER_HEIGHT - WINDOW_TITLE_HEIGHT - DOUBLE_PADDING
         );
 
-        private bool isChopping { get { return controlPlayer.designType == eDesignType.CHOP; } }
-        private bool isMining { get { return controlPlayer.designType == eDesignType.MINE; } }
-        private bool isBuilding { get { return controlPlayer.designType == eDesignType.BUILD; } }
-        private bool isStructuring { get { return controlPlayer.designType == eDesignType.STRUCTURE; } }
+        private bool isChopping { get { return controlPlayer.designing && controlPlayer.designType == eDesignType.CHOP; } }
+        private bool isMining { get { return controlPlayer.designing && controlPlayer.designType == eDesignType.MINE; } }
+        private bool isBuilding { get { return controlPlayer.designing && controlPlayer.designType == eDesignType.BUILD; } }
+        private bool isStructuring { get { return controlPlayer.designing && controlPlayer.designType == eDesignType.STRUCTURE; } }
         private bool isSelecting { get { return controlPlayer.selecting; } }
         private bool isDesigning { get { return controlPlayer.designing; } }
+        private bool isSelectingUnitType { get { return isSelectingHumanType || isSelectingEnemyType || isSelectingFriendlyType; } }
 
         private bool isScrolling { get { return Input.GetAxis(Mouse.SCROLL_WHEEL) != 0; } }
 
@@ -78,14 +79,20 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 
 
         private UnitProfession selectedUnitType;
-        private bool isSelectingUnitType = false;
-        private bool isPlacingUnit = false;
-        private bool doPlaceUnit = false;
+        private bool isSelectingHumanType = false;
+        private bool isPlacingHuman = false;
+        private bool doPlaceHuman = false;
+
+        private NeutralUnit selectedNeutralType;
+        private bool isSelectingFriendlyType = false;
+        private bool isPlacingNeutral = false;
+        private bool doPlaceNeutral = false;
 
         private EnemyUnit selectedEnemyType;
         private bool isSelectingEnemyType = false;
         private bool isPlacingEnemy = false;
         private bool doPlaceEnemy = false;
+
 
         public void Start()
         {
@@ -114,26 +121,36 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 else
                 {                   
                     controlPlayer.CancelDesigning(true);
+                }
 
-                    if (isPlacingUnit)
-                    {
-                        isPlacingUnit = false;
-                        selectedUnitType = null;
-                    }
-                    else if (isSelectingUnitType)
-                    {
-                        isSelectingUnitType = false;
-                    }
+                if (isPlacingHuman)
+                {
+                    isPlacingHuman = false;
+                    //selectedUnitType = null;
+                }
+                else if (isSelectingHumanType)
+                {
+                    isSelectingHumanType = false;
+                }
 
-                    if (isPlacingEnemy)
-                    {
-                        isPlacingEnemy = false;
-                        selectedEnemyType = null;
-                    }
-                    else if (isSelectingEnemyType)
-                    {
-                        isSelectingEnemyType = false;
-                    }
+                if (isPlacingNeutral)
+                {
+                    isPlacingNeutral = false;
+                    //selectedFriendlyType = null;
+                }
+                else if (isSelectingFriendlyType)
+                {
+                    isSelectingFriendlyType = false;
+                }
+
+                if (isPlacingEnemy)
+                {
+                    isPlacingEnemy = false;
+                    //selectedEnemyType = null;
+                }
+                else if (isSelectingEnemyType)
+                {
+                    isSelectingEnemyType = false;
                 }
 
                 isMouseInGUIOverride = false;
@@ -157,21 +174,29 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                     doBuildStructures = true;
                 }
 
-                if (isPlacingUnit)
+                if (isPlacingHuman)
                 {
-                    if (Input.GetKeyUp(PRIMARY_KEY))
+                    if (Input.GetKeyDown(PRIMARY_KEY))
                     {
-                        doPlaceUnit = true;
+                        doPlaceHuman = true;
+                    }
+                }
+                else if (isPlacingNeutral)
+                {
+                    if (Input.GetKeyDown(PRIMARY_KEY))
+                    {
+                        doPlaceNeutral = true;
                     }
                 }
                 else if (isPlacingEnemy)
                 {
-                    if (Input.GetKeyUp(PRIMARY_KEY))
+                    if (Input.GetKeyDown(PRIMARY_KEY))
                     {
                         doPlaceEnemy = true;
                     }
                 }
-                else if (!isSelecting)
+                
+                if (!isSelecting && !isSelectingUnitType)
                 {    
                     if (Input.GetKeyUp(CHANGE_VIEW_KEY))
                     {
@@ -179,7 +204,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                         log("Camera switched.");
                     }
 
-                    if (isChopping && isDesigning)
+                    if (isChopping)
                     {
                         if (Input.GetKeyUp(PRIMARY_KEY))
                         {
@@ -363,12 +388,19 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                     doRemoveAllTrees = false;
                     //Remove All Trees
                     buildingService.removeAllTreeItems();
+                    controlPlayer.CancelDesigning(true);
                 }
-                else if (doPlaceUnit)
+                else if (doPlaceHuman)
                 {
-                    doPlaceUnit = false;
+                    doPlaceHuman = false;
                     //Place Selected Unit Type At Mouse Position
-                    unitService.addUnit(selectedUnitType, controlPlayer.WorldPositionAtMouse(), true);
+                    unitService.addHuman(selectedUnitType, controlPlayer.WorldPositionAtMouse(), true);
+                }
+                else if (doPlaceNeutral)
+                {
+                    doPlaceNeutral = false;
+                    //Place Selected Neutral Type At Mouse Position
+                    unitService.addNeutral(selectedNeutralType, controlPlayer.WorldPositionAtMouse());
                 }
                 else if (doPlaceEnemy)
                 {
@@ -401,7 +433,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 }
             }
         }
-       
+        
         private void drawBuildWindow(int id)
         {
             Window(parentContainer, PARENT_CONTAINER_TITLE);
@@ -410,14 +442,19 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 
             if (isCreativeEnabled)
             {
-                if (isPlacingUnit)
+                if (isPlacingHuman)
                 {
-                    Label("Placing: " + selectedUnitType.Name);
+                    Label(selectedUnitType.Name);
+                    Label(getKeyString(PRIMARY_KEY) + " To Place");
+                }
+                else if (isPlacingNeutral)
+                {
+                    Label(selectedNeutralType.Name);
                     Label(getKeyString(PRIMARY_KEY) + " To Place");
                 }
                 else if (isPlacingEnemy)
                 {
-                    Label("Placing: " + selectedEnemyType.Name);
+                    Label(selectedEnemyType.Name);
                     Label(getKeyString(PRIMARY_KEY) + " To Place");
                 }
 
@@ -467,32 +504,49 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                         Button("Remove All Trees", ref doRemoveAllTrees);
                     }
                 }
-                else if(!isSelecting && !isDesigning && !isSelectingUnitType && !isSelectingEnemyType)
+                else if(!isSelecting && !isDesigning && !isSelectingUnitType)
                 {
                     if (Time.timeSinceLevelLoad > 12f)
                     {
                         Button("Save Game", ref doSaveGame);
                     }
 
-                    if (Button("Place Units"))
+                    if (Button("Add Player Units"))
                     {
-                        isSelectingUnitType = true;
+                        isSelectingHumanType = true;
                     }
 
-                    if (Button("Place Enemies"))
+                    if (Button("Add Friendly NPCs"))
+                    {
+                        isSelectingFriendlyType = true;
+                    }
+
+                    if (Button("Add Enemy NPCs"))
                     {
                         isSelectingEnemyType = true;
                     }
                 }
-                else if (isSelectingUnitType && !isPlacingUnit)
+                else if (isSelectingHumanType && !isPlacingHuman)
                 {
-                    //Place Unit List
+                    //Place Human List
                     foreach (UnitProfession profession in UnitProfession.List)
                     {
                         if (Button(profession.Name))
                         {
                             selectedUnitType = profession;
-                            isPlacingUnit = true;
+                            isPlacingHuman = true;
+                        }
+                    }
+                }
+                else if (isSelectingFriendlyType && !isPlacingNeutral)
+                {
+                    //Place Neutral List
+                    foreach (NeutralUnit profession in NeutralUnit.List)
+                    {
+                        if (Button(profession.Name))
+                        {
+                            selectedNeutralType = profession;
+                            isPlacingNeutral = true;
                         }
                     }
                 }

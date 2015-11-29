@@ -215,10 +215,17 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 
         private void fixUnitStatus(ALivingEntity entity)
         {
-            entity.hunger = isHungerEnabled ? entity.hunger : 0f;
-            entity.fatigue = !isPeacefulEnabled ? entity.fatigue : 1f;
-            entity.morale = !isPeacefulEnabled ? entity.morale : 1f;
-            entity.hitpoints = !isPeacefulEnabled ? entity.hitpoints : entity.maxHP;
+            if(!isHungerEnabled)
+            {
+                entity.hunger = 0f;
+            }
+
+            if (isPeacefulEnabled)
+            {
+                if (entity.fatigue <= .5f) entity.fatigue = 1f;
+                if (entity.morale <= .5f) entity.morale = 1f;
+                if (entity.hitpoints <= entity.maxHP * .5f) entity.hitpoints = entity.maxHP;
+            }
         } 
         
         public void OnGUI()

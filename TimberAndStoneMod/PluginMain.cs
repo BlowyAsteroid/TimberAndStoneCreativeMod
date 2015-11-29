@@ -34,11 +34,11 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         [Timber_and_Stone.API.Event.EventHandler(Priority.Monitor)]
         public void onInvasionMonitor(EventInvasion evt)
         {
-            if (!ModSettings.isPreventInvasionsEnabled || evt.result != Result.Deny) return;
+            if (evt.result != Result.Deny) return;
 
             ModComponent.log(String.Format("A {0} invasion has been cancelled.", evt.invasion.getName()));
         }
-
+        
         [Timber_and_Stone.API.Event.EventHandler(Priority.Normal)]
         public void onEntityDeathNormal(EventEntityDeath evt)
         {
@@ -50,18 +50,11 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         [Timber_and_Stone.API.Event.EventHandler(Priority.Monitor)]
         public void onEntityDeathMonitor(EventEntityDeath evt)
         {
-            if (!ModSettings.isPreventDeathEnabled || evt.result != Result.Deny) return;
+            if (evt.result != Result.Deny) return;
                         
             ALivingEntity unit = evt.getUnit();
-            bool isStarvation = unit.hitpoints > 0 && unit.hunger <= 0;
-
             unit.hitpoints = unit.maxHP;
             unit.hunger = 0f;
-
-            ModComponent.log(String.Format("{0} died{1}, but has been brought back to life.", 
-                unit.unitName, 
-                isStarvation ? " of starvation" : String.Empty
-            ));
         }
     }
 }

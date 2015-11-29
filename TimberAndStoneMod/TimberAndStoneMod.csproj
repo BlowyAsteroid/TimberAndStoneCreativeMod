@@ -46,6 +46,7 @@
   <ItemGroup>
     <Compile Include="EnemyUnit.cs" />
     <Compile Include="ModUtils.cs" />
+    <Compile Include="NeutralUnit.cs" />
     <Compile Include="PluginMain.cs" />
     <Compile Include="Services\BuildingService.cs" />
     <Compile Include="UnitProfession.cs" />
