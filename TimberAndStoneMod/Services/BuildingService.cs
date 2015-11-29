@@ -346,13 +346,23 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 
         public bool removeTree(TreeFlora tree)
         {
-            terrainManager.RemoveTree(tree, 1);
+            if (isValidCompareBlock(getBlock(Coordinate.FromChunkBlock(tree.chunkPos, tree.blockPos))))
+            {
+                terrainManager.RemoveTree(tree, 1);
+            }
+            else terrainManager.RemoveTree(tree, 0);
+
             return true;
         }
 
         public bool removeShrub(Shrub shrub)
         {
-            terrainManager.RemoveShrub(shrub, 1);
+            if (isValidCompareBlock(getBlock(Coordinate.FromChunkBlock(shrub.chunkPos, shrub.blockPos))))
+            {
+                terrainManager.RemoveShrub(shrub, 1);
+            }
+            else terrainManager.RemoveShrub(shrub, 0);
+
             return true;
         }
 

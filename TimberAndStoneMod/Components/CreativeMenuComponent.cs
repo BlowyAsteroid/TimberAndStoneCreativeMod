@@ -442,7 +442,19 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 
             if (isCreativeEnabled)
             {
-                if (isPlacingHuman)
+                if (isSelectingHumanType)
+                {
+                    Label("Player Units");
+                }
+                else if (isSelectingFriendlyType)
+                {
+                    Label("Friendly NPCs");
+                }
+                else if (isSelectingEnemyType)
+                {
+                    Label("Enemy NPCs");
+                }
+                else if (isPlacingHuman)
                 {
                     Label(selectedUnitType.Name);
                     Label(getKeyString(PRIMARY_KEY) + " To Place");
