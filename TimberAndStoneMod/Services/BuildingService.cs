@@ -377,15 +377,20 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 
             tempTreeTransform = ModUtils.createTransform(terrainManager.treeObject);
             tempTreeTransform.transform.parent = getChunkData(coordinate).chunkObj.transform;
-            tempTreeTransform.position = coordinate.world;
+            tempTreeTransform.position = getSlightlyOffsetY(coordinate.world);
 
             tempAddTree = tempTreeTransform.GetComponent<TreeFlora>();
-            tempAddTree.blockPos = coordinate.block;
-            tempAddTree.chunkPos = coordinate.chunk;
+            tempAddTree.blockPos = getSlightlyOffsetY(coordinate.block);
+            tempAddTree.chunkPos = getSlightlyOffsetY(coordinate.chunk);
             tempAddTree.health = 100f;
 
             terrainManager.AddTree(tempAddTree);
             tempAddTree.Init();
+        }
+
+        private Vector3 getSlightlyOffsetY(Vector3 position)
+        {
+            return new Vector3(position.x, position.y - chunkManager.voxelSize / 2, position.z);
         }
 
         private Shrub tempAddShrub;
@@ -400,11 +405,11 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 
             tempShrubTransform = ModUtils.createTransform(terrainManager.shrubObject);
             tempShrubTransform.transform.parent = getChunkData(coordinate).chunkObj.transform;
-            tempShrubTransform.position = coordinate.world;
+            tempShrubTransform.position = getSlightlyOffsetY(coordinate.world);
 
             tempAddShrub = tempShrubTransform.GetComponent<Shrub>();
-            tempAddShrub.blockPos = coordinate.block;
-            tempAddShrub.chunkPos = coordinate.chunk;
+            tempAddShrub.blockPos = getSlightlyOffsetY(coordinate.block);
+            tempAddShrub.chunkPos = getSlightlyOffsetY(coordinate.chunk);
             tempAddShrub.health = 100f;
             tempAddShrub.berryCount = 50;
 
