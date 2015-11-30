@@ -21,7 +21,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
             return instance.getUnitAlignment(entity) == Alignment.Ally || instance.getUnitAlignment(entity) == Alignment.Neutral;
         }
 
-        private const int MAX_SPAWN_ATTEMPTS = 5;
+        private const int MAX_SPAWN_ATTEMPTS = 10;
         private const int MAX_ANIMAL_COUNT = 250;
 
         private Dictionary<APlayableEntity, APlayableEntity.Preferences> originalTraits 
@@ -326,9 +326,9 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
             
             if (isArcher)
             {
-                unit.addProfession(new Timber_and_Stone.Profession.Human.Archer(unit, 100));
+                unit.addProfession(new Timber_and_Stone.Profession.Human.Archer(unit, getRandomeExperience()));
             }
-            else unit.addProfession(new Timber_and_Stone.Profession.Human.Infantry(unit, 100));
+            else unit.addProfession(new Timber_and_Stone.Profession.Human.Infantry(unit, getRandomeExperience()));
 
             unit.unitName = "Human";
             unit.faction = worldManager.NeutralHostileFaction;
