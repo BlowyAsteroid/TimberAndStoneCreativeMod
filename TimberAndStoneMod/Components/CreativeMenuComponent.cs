@@ -83,12 +83,12 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         private bool isPlacingHuman = false;
         private bool doPlaceHuman = false;
 
-        private NeutralUnit selectedNeutralType;
+        private UnitFriendly selectedNeutralType;
         private bool isSelectingFriendlyType = false;
         private bool isPlacingNeutral = false;
         private bool doPlaceNeutral = false;
 
-        private EnemyUnit selectedEnemyType;
+        private UnitEnemy selectedEnemyType;
         private bool isSelectingEnemyType = false;
         private bool isPlacingEnemy = false;
         private bool doPlaceEnemy = false;
@@ -400,7 +400,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 {
                     doPlaceNeutral = false;
                     //Place Selected Neutral Type At Mouse Position
-                    unitService.addNeutral(selectedNeutralType, controlPlayer.WorldPositionAtMouse());
+                    unitService.addFriendlyNPC(selectedNeutralType, controlPlayer.WorldPositionAtMouse());
                 }
                 else if (doPlaceEnemy)
                 {
@@ -553,7 +553,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 else if (isSelectingFriendlyType && !isPlacingNeutral)
                 {
                     //Place Neutral List
-                    foreach (NeutralUnit profession in NeutralUnit.List)
+                    foreach (UnitFriendly profession in UnitFriendly.List)
                     {
                         if (Button(profession.Name))
                         {
@@ -565,7 +565,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 else if (isSelectingEnemyType && !isPlacingEnemy)
                 {
                     //Place Enemy List
-                    foreach (EnemyUnit enemyType in EnemyUnit.List)
+                    foreach (UnitEnemy enemyType in UnitEnemy.List)
                     {
                         if (Button(enemyType.Name))
                         {

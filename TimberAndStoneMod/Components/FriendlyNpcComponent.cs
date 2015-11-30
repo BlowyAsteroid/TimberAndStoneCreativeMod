@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using Timber_and_Stone.API.Event;
 using Timber_and_Stone.Tasks;
+using UnityEngine;
 
 namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 {
@@ -12,7 +13,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
     {        
         private UnitManager unitManager = UnitManager.getInstance();
         private WorldManager worldManager = WorldManager.getInstance();
-        private static UnitService unitService = UnitService.getInstance();
+        private static EquipmentService equipmentService = EquipmentService.getInstance();
 
         public void Start()
         {
@@ -23,7 +24,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         {
             if (!isTimeToUpdate(DateTime.Now.Ticks)) return;
 
-            foreach (ALivingEntity entity in unitManager.allUnits.Where(u => UnitPreferences.isFriendlyNPC(u)))
+            foreach (ALivingEntity entity in unitManager.allUnits.Where(u => UnitPreference.isFriendlyNPC(u)))
             {
                 if(!entity.taskStackContains(typeof(TaskAttack)) 
                     && !entity.taskStackContains(typeof(TaskAttackTarget)))
@@ -32,20 +33,25 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 }
                 
                 entity.spottedTimer = 15f;
+                entity.hitpoints = entity.maxHP;
 
                 entity.inventory.Clear();
-                unitService.equipNPC(entity, UnitPreferences.isArcherNPC(entity));
+                equipmentService.equipNPCWeapons(entity, UnitPreference.isArcherNPC(entity));
             }
         }
 
         public static void updateNPCsNear(ALivingEntity entity)
         {
-            foreach (ALivingEntity unit in entity.getNearbyUnits(3f, false).Where(u => UnitPreferences.isFriendlyNPC(u)))
+            if (entity == null) return;
+
+            foreach (ALivingEntity unit in entity.getNearbyUnits(3f, false).Where(u => UnitPreference.isFriendlyNPC(u)))
             {
+                if (unit == null) continue;
+
                 unit.interruptTask(new TaskWait(10));
 
                 unit.inventory.Clear();
-                unitService.equipNPC(unit, UnitPreferences.isArcherNPC(unit));
+                equipmentService.equipNPCWeapons(unit, UnitPreference.isArcherNPC(unit));
             }
         }
     }

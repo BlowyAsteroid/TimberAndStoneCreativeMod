@@ -81,8 +81,17 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                     isPeacefulEnabled = modSettings.isPeacefulEnabled = false;
                     isHungerEnabled = true;
 
-                    doUnlimitedStorage = true;
-                    doInfiniteMaterials = true;
+                    if (isUnlimitedStorageEnabled)
+                    {
+                        isUnlimitedStorageEnabled = false;
+                        doUnlimitedStorage = true;
+                    }
+
+                    if (isInfiniteMaterialsEnabled)
+                    {
+                        isInfiniteMaterialsEnabled = false;
+                        doInfiniteMaterials = true;
+                    }
                 }
             }
 
@@ -196,7 +205,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 {
                     doBestTraits = false;
                     //Set Best Unit Traits
-                    unitService.getPlayableUnits().ForEach(u => unitService.setBestTraits(u));
+                    unitService.getPlayableUnits().ForEach(u => UnitPreference.setBestTraits(u));
                 }
                 else if (doMaxCurrentProfessions)
                 {
@@ -208,7 +217,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 {
                     doMaxAllProfessions = false;
                     //Set All Unit Professions To Max
-                    unitService.getPlayableUnits().ForEach(u => unitService.setAllProfessionsMax(u));
+                    unitService.getPlayableUnits().ForEach(u => UnitProfession.setAllProfessionsMax(u));
                 }
             }
         }

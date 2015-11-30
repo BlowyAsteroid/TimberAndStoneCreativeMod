@@ -45,12 +45,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Components\FriendlyNpcComponent.cs" />
-    <Compile Include="EnemyUnit.cs" />
+    <Compile Include="ResourceId.cs" />
+    <Compile Include="UnitEnemy.cs" />
     <Compile Include="ModUtils.cs" />
-    <Compile Include="NeutralUnit.cs" />
+    <Compile Include="UnitFriendly.cs" />
     <Compile Include="PluginMain.cs" />
     <Compile Include="Services\BuildingService.cs" />
-    <Compile Include="UnitPreferences.cs" />
+    <Compile Include="Services\EquipmentService.cs" />
+    <Compile Include="UnitPreference.cs" />
     <Compile Include="UnitProfession.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ModSettings.cs" />

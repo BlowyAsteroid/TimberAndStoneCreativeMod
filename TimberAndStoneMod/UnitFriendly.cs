@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Plugin.BlowyAsteroid.TimberAndStoneMod
 {
-    public class NeutralUnit
+    public class UnitFriendly
     {
         public const String GOBLIN_INFANTRY = "Goblin Infantry";
         public const String GOBLIN_ARCHER = "Goblin Archer";
@@ -19,24 +19,24 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
             GOBLIN_INFANTRY, GOBLIN_ARCHER, SKELETON_INFANTRY, SKELETON_ARCHER, HUMAN_INFANTRY, HUMAN_ARCHER
         };
 
-        public static readonly NeutralUnit GoblinInfantry = new NeutralUnit(GOBLIN_INFANTRY);
-        public static readonly NeutralUnit GoblinArcher = new NeutralUnit(GOBLIN_ARCHER);
-        public static readonly NeutralUnit SkeletonInfantry = new NeutralUnit(SKELETON_INFANTRY);
-        public static readonly NeutralUnit SkeletonArcher = new NeutralUnit(SKELETON_ARCHER);
-        public static readonly NeutralUnit HumanInfantry = new NeutralUnit(HUMAN_INFANTRY);
-        public static readonly NeutralUnit HumanArcher = new NeutralUnit(HUMAN_ARCHER);
+        public static readonly UnitFriendly GoblinInfantry = new UnitFriendly(GOBLIN_INFANTRY);
+        public static readonly UnitFriendly GoblinArcher = new UnitFriendly(GOBLIN_ARCHER);
+        public static readonly UnitFriendly SkeletonInfantry = new UnitFriendly(SKELETON_INFANTRY);
+        public static readonly UnitFriendly SkeletonArcher = new UnitFriendly(SKELETON_ARCHER);
+        public static readonly UnitFriendly HumanInfantry = new UnitFriendly(HUMAN_INFANTRY);
+        public static readonly UnitFriendly HumanArcher = new UnitFriendly(HUMAN_ARCHER);
 
-        public static readonly NeutralUnit[] List = new NeutralUnit[] 
+        public static readonly UnitFriendly[] List = new UnitFriendly[] 
         {
             HumanInfantry, HumanArcher, GoblinInfantry, GoblinArcher, SkeletonInfantry, SkeletonArcher
         };
 
-        public static NeutralUnit Random { get { return List[UnityEngine.Random.Range(0, List.Count())]; } }
+        public static UnitFriendly Random { get { return List[UnityEngine.Random.Range(0, List.Count())]; } }
 
 
         private String name;
 
-        private NeutralUnit(String name)
+        private UnitFriendly(String name)
         {
             this.name = name;
         }

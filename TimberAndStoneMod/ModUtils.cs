@@ -132,5 +132,31 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         {
             return UnityEngine.Object.Instantiate(unityObject, position, rotation) as Transform;
         }
+
+
+
+
+
+
+        public static void generateResourceConstantsAndWriteToFile()
+        {
+            String result = "";
+            Resource resource;
+
+            for (int i = 1; i < 255; i++)
+            {
+                try
+                {
+                    if ((resource = Resource.FromID(i)) != null)
+                    {
+                        result += String.Format("public const int {0} = {1};{2}",
+                            resource.name.Replace(' ', '_').Replace("'", String.Empty).ToUpper(), resource.index, Environment.NewLine);
+                    }
+                }
+                catch (Exception e) { }
+            }
+
+            System.IO.File.WriteAllText("resource_constants.txt", result);
+        }
     }
 }

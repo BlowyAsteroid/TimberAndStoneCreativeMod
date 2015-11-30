@@ -7,7 +7,7 @@ using Timber_and_Stone.Invasion;
 
 namespace Plugin.BlowyAsteroid.TimberAndStoneMod
 {
-    public class EnemyUnit
+    public class UnitEnemy
     {
         public const String GOBLIN_INFANTRY = "Goblin Infantry";
         public const String GOBLIN_ARCHER = "Goblin Archer";
@@ -18,26 +18,26 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         public const String HUMAN_INFANTRY = "Human Infantry";
         public const String HUMAN_ARCHER = "Human Archer";
 
-        public static EnemyUnit GoblinInfantry = new EnemyUnit(GOBLIN_INFANTRY);
-        public static EnemyUnit GoblinArcher = new EnemyUnit(GOBLIN_ARCHER);
-        public static EnemyUnit SkeletonInfantry = new EnemyUnit(SKELETON_INFANTRY);
-        public static EnemyUnit SkeletonArcher = new EnemyUnit(SKELETON_ARCHER);
-        public static EnemyUnit Necromancer = new EnemyUnit(NECROMANCER);
+        public static UnitEnemy GoblinInfantry = new UnitEnemy(GOBLIN_INFANTRY);
+        public static UnitEnemy GoblinArcher = new UnitEnemy(GOBLIN_ARCHER);
+        public static UnitEnemy SkeletonInfantry = new UnitEnemy(SKELETON_INFANTRY);
+        public static UnitEnemy SkeletonArcher = new UnitEnemy(SKELETON_ARCHER);
+        public static UnitEnemy Necromancer = new UnitEnemy(NECROMANCER);
 
-        public static EnemyUnit HumanInfantry = new EnemyUnit(HUMAN_INFANTRY);
-        public static EnemyUnit HumanArcher = new EnemyUnit(HUMAN_ARCHER);
+        public static UnitEnemy HumanInfantry = new UnitEnemy(HUMAN_INFANTRY);
+        public static UnitEnemy HumanArcher = new UnitEnemy(HUMAN_ARCHER);
 
-        public static EnemyUnit[] List = new EnemyUnit[] 
+        public static UnitEnemy[] List = new UnitEnemy[] 
         {
             HumanInfantry, HumanArcher, GoblinInfantry, GoblinArcher, SkeletonInfantry, SkeletonArcher, Necromancer
         };
 
-        public static EnemyUnit Random { get { return List[UnityEngine.Random.Range(0, List.Count())]; } }
+        public static UnitEnemy Random { get { return List[UnityEngine.Random.Range(0, List.Count())]; } }
 
 
         private String name;
 
-        private EnemyUnit(String name)
+        private UnitEnemy(String name)
         {
             this.name = name;
         }

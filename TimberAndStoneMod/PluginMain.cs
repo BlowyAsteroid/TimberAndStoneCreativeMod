@@ -45,6 +45,11 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         [Timber_and_Stone.API.Event.EventHandler(Priority.Normal)]
         public void onEntityDeathNormal(EventEntityDeath evt)
         {
+            if (UnitPreference.isFriendlyNPC(evt.getUnit()))
+            {
+                evt.result = Result.Deny;
+            }
+
             if (!ModSettings.isPreventDeathEnabled || !UnitService.isFriendly(evt.getUnit())) return;
             
             evt.result = Result.Deny;
@@ -60,9 +65,13 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
 
             if (evt.result != Result.Deny) return;
 
-            ALivingEntity unit = evt.getUnit();
-            unit.hitpoints = unit.maxHP;
-            unit.hunger = 0f;
+            healUnit(evt.getUnit());
+        }
+
+        private void healUnit(ALivingEntity entity)
+        {
+            entity.hitpoints = entity.maxHP;
+            entity.hunger = 0f;
         }
     }
 }

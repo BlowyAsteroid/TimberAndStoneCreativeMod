@@ -24,17 +24,14 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
         private const int MAX_SPAWN_ATTEMPTS = 10;
         private const int MAX_ANIMAL_COUNT = 250;
 
-        private Dictionary<APlayableEntity, APlayableEntity.Preferences> originalTraits 
-            = new Dictionary<APlayableEntity, APlayableEntity.Preferences>();
-        
-        private Dictionary<APlayableEntity, Dictionary<AProfession, int>> originalProfessions 
-            = new Dictionary<APlayableEntity, Dictionary<AProfession, int>>();
-
         private UnitManager unitManager = UnitManager.getInstance();
         private WorldManager worldManager = WorldManager.getInstance();
         private DesignManager designManager = DesignManager.getInstance();
         private ResourceManager resourceManager = ResourceManager.getInstance();
         private AssetManager assetManager = AssetManager.getInstance();
+
+        private EquipmentService equipmentService = EquipmentService.getInstance();
+        private BuildingService buildingSerive = BuildingService.getInstance();
 
         private UnitService() { }
 
@@ -101,72 +98,76 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
             APlayableEntity entity = unitManager.AddHumanUnit(profession.Name.ToLower(), position, 
                 true, !autoAccept, UnityEngine.Random.Range(0, 3) == 1).GetComponent<APlayableEntity>();
 
-            unitManager.AddMigrantResources(entity);
+            entity.inventory.Clear();
+            equipmentService.equipPlayerUnit(entity);
 
             return entity;
         }
 
-        public ALivingEntity addNeutral(NeutralUnit profession, Vector3 position)
+        public ALivingEntity addFriendlyNPC(UnitFriendly profession, Vector3 position)
         {
             if (profession == null || position == null) return null;
 
             ALivingEntity entity = null;
+            bool isArcher = false;
 
             switch (profession.Name)
             {
-                case NeutralUnit.HUMAN_INFANTRY:
-                    entity = createHumanUnit();
-                    equipHuman(entity);
-                    entity.unitName = NeutralUnit.HUMAN_INFANTRY;
+                case UnitFriendly.HUMAN_INFANTRY:
+                    entity = createHumanUnit();                  
+                    entity.unitName = UnitFriendly.HUMAN_INFANTRY;
                     break;
 
-                case NeutralUnit.HUMAN_ARCHER:
+                case UnitFriendly.HUMAN_ARCHER:
                     entity = createHumanUnit(isArcher: true);
-                    equipHuman(entity, true);
-                    entity.unitName = NeutralUnit.HUMAN_ARCHER;
-                    entity.GetComponent<APlayableEntity>().preferences[UnitPreferences.NPC_ARCHER] = true;
+                    entity.unitName = UnitFriendly.HUMAN_ARCHER;
+                    isArcher = true;
                     break;
 
-                case NeutralUnit.GOBLIN_INFANTRY:
+                case UnitFriendly.GOBLIN_INFANTRY:
                     entity = createGoblinUnit();
-                    equipGoblin(entity);
+                    equipmentService.equipGoblinWeapons(entity);
                     break;
 
-                case NeutralUnit.GOBLIN_ARCHER:
+                case UnitFriendly.GOBLIN_ARCHER:
                     entity = createGoblinUnit();
-                    equipGoblin(entity, true);
-                    entity.GetComponent<APlayableEntity>().preferences[UnitPreferences.NPC_ARCHER] = true;
+                    isArcher = true;
                     break;
 
-                case NeutralUnit.SKELETON_INFANTRY:
+                case UnitFriendly.SKELETON_INFANTRY:
                     entity = createSkeletonUnit();
-                    equipSkeleton(entity);
+                    equipmentService.equipSkeletonWeapons(entity);
                     break;
 
-                case NeutralUnit.SKELETON_ARCHER:
+                case UnitFriendly.SKELETON_ARCHER:
                     entity = createSkeletonUnit();
-                    equipSkeleton(entity, true);
-                    entity.GetComponent<APlayableEntity>().preferences[UnitPreferences.NPC_ARCHER] = true;
+                    isArcher = true;
                     break;
             }
+
+            UnitPreference.set(entity, UnitPreference.NPC_FRIENDLY, true);
+            UnitPreference.set(entity, UnitPreference.NPC_ARCHER, isArcher);
+
+            equipmentService.equipNPCWeapons(entity, isArcher);
 
             entity.faction = worldManager.MigrantFaction;
             entity.hitpoints = entity.maxHP;
+            entity.coordinate = getCoordinateAboveIfAir(Coordinate.FromWorld(position));
+            entity.interruptTask(new TaskWait(10));
             entity.spottedTimer = 10f;
 
-            entity.GetComponent<APlayableEntity>().preferences[UnitPreferences.NPC_FRIENDLY] = true;
+            return entity;
+        }
 
-            Coordinate coordinate = Coordinate.FromWorld(position);
-            if ((tempEnemyBlock = buildingSerive.getBlock(coordinate)).properties.getID() != 0)
+        IBlock tempBlock;
+        private Coordinate getCoordinateAboveIfAir(Coordinate coordinate)
+        {
+            if ((tempBlock = buildingSerive.getBlock(coordinate)).properties.getID() != 0)
             {
-                coordinate = tempEnemyBlock.relative(0, 1, 0).coordinate;
+                return tempBlock.relative(0, 1, 0).coordinate;
             }
 
-            entity.coordinate = coordinate;
-
-            entity.interruptTask(new TaskWait(10));
-
-            return entity;
+            return coordinate;
         }
 
         public Vector3 getRandomRoadPosition()
@@ -176,95 +177,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
                 : Vector3.zero;
         }
 
-        APlayableEntity.Preferences originalPreferences;
-        public void setBestTraits(APlayableEntity entity)
-        {
-            originalPreferences = null;
-
-            if (!originalTraits.ContainsKey(entity))
-            {
-                originalPreferences = new APlayableEntity.Preferences();
-            }
-
-            foreach (UnitTrait trait in UnitTrait.List)
-            {
-                if (originalPreferences != null)
-                {
-                    originalPreferences[trait.Name] = entity.preferences[trait.Name];
-                }
-
-                entity.preferences[trait.Name] = trait.Type == UnitTraitType.GOOD;
-            }
-
-            if (originalPreferences != null)
-            {
-                originalTraits.Add(entity, originalPreferences);
-            }
-        }
-
-        private APlayableEntity.Preferences existingPreferences;
-        public void restoreTraits(APlayableEntity entity)
-        {
-            if (originalTraits.TryGetValue(entity, out existingPreferences))
-            {
-                foreach (UnitTrait trait in UnitTrait.List)
-                {
-                    entity.preferences[trait.Name] = existingPreferences[trait.Name];
-                }
-
-                originalTraits.Remove(entity);
-            }
-        }
-
-        Dictionary<AProfession, int> professions;
-        public void setAllProfessionsMax(APlayableEntity entity)
-        {
-            professions = null;
-
-            if (!originalProfessions.ContainsKey(entity))
-            {
-                professions = new Dictionary<AProfession, int>();
-            }
-
-            foreach (KeyValuePair<Type, AProfession> key in entity.professions)
-            {
-                if (professions != null)
-                {
-                    professions.Add(key.Value, key.Value.getLevel());
-                }
-
-                key.Value.setLevel(AProfession.maxLevel);
-            }
-
-            if (professions != null)
-            {
-                originalProfessions.Add(entity, professions);
-            }
-        }
-
-        private Dictionary<AProfession, int> existingProfessions;
-        private int existingLevel;
-        public void restoreProfessions(APlayableEntity entity)
-        {
-            if (originalProfessions.TryGetValue(entity, out existingProfessions))
-            {
-                foreach (KeyValuePair<Type, AProfession> key in entity.professions)
-                {
-                    if (existingProfessions.TryGetValue(key.Value, out existingLevel))
-                    {
-                        key.Value.setLevel(existingLevel);
-                    }
-                }
-
-                originalProfessions.Remove(entity);
-            }
-        }
-
-
-
-        private BuildingService buildingSerive = BuildingService.getInstance();
-        IBlock tempEnemyBlock;
-        public ALivingEntity addEnemy(EnemyUnit type, Vector3 position)
+        public ALivingEntity addEnemy(UnitEnemy type, Vector3 position)
         {
             if(type == null || position == null) return null;
 
@@ -272,50 +185,44 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 
             switch (type.Name)
             {
-                case EnemyUnit.HUMAN_INFANTRY:
+                case UnitEnemy.HUMAN_INFANTRY:
                     entity = createHumanUnit();
-                    equipHuman(entity);
-                    entity.name = EnemyUnit.HUMAN_INFANTRY;
+                    equipmentService.equipHumanWeapons(entity);
+                    entity.name = UnitEnemy.HUMAN_INFANTRY;
                     break;
 
-                case EnemyUnit.HUMAN_ARCHER:
+                case UnitEnemy.HUMAN_ARCHER:
                     entity = createHumanUnit(isArcher: true);
-                    equipHuman(entity, true);
-                    entity.name = EnemyUnit.HUMAN_ARCHER;
+                    equipmentService.equipHumanWeapons(entity, true);
+                    entity.name = UnitEnemy.HUMAN_ARCHER;
                     break;
 
-                case EnemyUnit.GOBLIN_INFANTRY:
+                case UnitEnemy.GOBLIN_INFANTRY:
                     entity = createGoblinUnit();
-                    equipGoblin(entity);
+                    equipmentService.equipGoblinWeapons(entity);
                     break;
 
-                case EnemyUnit.GOBLIN_ARCHER:
+                case UnitEnemy.GOBLIN_ARCHER:
                     entity = createGoblinUnit();
-                    equipGoblin(entity, true);
+                    equipmentService.equipGoblinWeapons(entity, true);
                     break;
 
-                case EnemyUnit.SKELETON_INFANTRY:
+                case UnitEnemy.SKELETON_INFANTRY:
                     entity = createSkeletonUnit();
-                    equipSkeleton(entity);
+                    equipmentService.equipSkeletonWeapons(entity);
                     break;
 
-                case EnemyUnit.SKELETON_ARCHER:
+                case UnitEnemy.SKELETON_ARCHER:
                     entity = createSkeletonUnit();
-                    equipSkeleton(entity, true);
+                    equipmentService.equipSkeletonWeapons(entity, true);
                     break;
 
-                case EnemyUnit.NECROMANCER:
+                case UnitEnemy.NECROMANCER:
                     entity = createNecromancerUnit();
                     break;
             }
 
-            Coordinate coordinate = Coordinate.FromWorld(position);
-            if ((tempEnemyBlock = buildingSerive.getBlock(coordinate)).properties.getID() != 0)
-            {
-                coordinate = tempEnemyBlock.relative(0, 1, 0).coordinate;
-            }
-
-            entity.coordinate = coordinate;
+            entity.coordinate = getCoordinateAboveIfAir(Coordinate.FromWorld(position));
 
             return entity;
         }
@@ -369,61 +276,6 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
         private int getRandomeExperience()
         {
             return UnityEngine.Random.Range(300, 1500);
-        }
-
-        private void equipGoblin(ALivingEntity entity, bool addBow = false)
-        {
-            entity.inventory.Add(4, 5);
-            entity.inventory.Add(UnityEngine.Random.Range(150, 152 + 1), 1);
-            entity.inventory.Add(UnityEngine.Random.Range(170, 171 + 1), 1);
-
-            if (addBow)
-            {
-                entity.inventory.Add(UnityEngine.Random.Range(153, 154 + 1), 1);
-                entity.inventory.Add(Resource.FromID(Extension_Methods.RandomElement<int>(resourceManager.listIndexArrowBest)), 25);        
-            }
-        }
-
-        private void equipSkeleton(ALivingEntity entity, bool addBow = false)
-        {
-            entity.inventory.Add(4, 5);
-            entity.inventory.Add(UnityEngine.Random.Range(180, 181 + 1), 1);
-            entity.inventory.Add(190, 1);
-
-            if (addBow)
-            {
-                entity.inventory.Add(182, 1);
-                entity.inventory.Add(Resource.FromID(Extension_Methods.RandomElement<int>(resourceManager.listIndexArrowBest)), 25);
-            }
-        }
-
-        private void equipHuman(ALivingEntity entity, bool addBow = false)
-        {
-            entity.inventory.Add(4, 5);
-            entity.inventory.Add(90, 1);
-            entity.inventory.Add(137, 1);
-
-            if (addBow)
-            {
-                entity.inventory.Add(96, 1);
-                entity.inventory.Add(Resource.FromID(Extension_Methods.RandomElement<int>(resourceManager.listIndexArrowBest)), 25);
-            }
-        }
-
-        public void equipNPC(ALivingEntity entity, bool isArcher = false)
-        {
-            if (entity is HumanEntity)
-            {
-                equipHuman(entity, isArcher);
-            }
-            else if (entity is GoblinEntity)
-            {
-                equipGoblin(entity, isArcher);
-            }
-            else if (entity is SkeletonEntity)
-            {
-                equipSkeleton(entity, isArcher);
-            }
         }
     }
 }
