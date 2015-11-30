@@ -34,6 +34,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
 
         private const long DEFAULT_UPDATES_PER_SECOND = 5;
         private const long TICKS_PER_SECOND = 10000000;
+        private const long TICKS_PER_MINUTE = TICKS_PER_SECOND * 60;
 
         protected static readonly GUIManager guiManager = GUIManager.getInstance();
 
@@ -60,10 +61,19 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         {
             this.updatesPerSecond = updatesPerSecond > 0 ? updatesPerSecond : DEFAULT_UPDATES_PER_SECOND;
         }
+        private long updatesPerMinute = 0;
+        protected void setUpdatesPerMinute(long updatesPerMinute)
+        {
+            this.updatesPerMinute = updatesPerMinute > 0 ? updatesPerMinute : 0;
+        }
 
         protected bool isTimeToUpdate(long ticks)
         {
-            return (previousTicks = (previousTicks + TICKS_PER_SECOND / updatesPerSecond <= ticks ? ticks : previousTicks)) == ticks;           
+            if (this.updatesPerMinute > 0)
+            {
+                return (previousTicks = (previousTicks + TICKS_PER_MINUTE / updatesPerMinute <= ticks ? ticks : previousTicks)) == ticks;
+            }
+            else return (previousTicks = (previousTicks + TICKS_PER_SECOND / updatesPerSecond <= ticks ? ticks : previousTicks)) == ticks;           
         }       
 
         private Vector2 mousePosition = Vector2.zero;

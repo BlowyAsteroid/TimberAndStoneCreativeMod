@@ -98,7 +98,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         {
             setUpdatesPerSecond(5);
 
-            availableBlockTypes = ModUtils.getUnbuildableBlockTypes();       
+            availableBlockTypes = ModUtils.getUnbuildableBlockTypes();
         }
 
         private IBlock tempBlock;

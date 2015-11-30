@@ -5,6 +5,7 @@ using Timber_and_Stone;
 using Timber_and_Stone.API;
 using Timber_and_Stone.Invasion;
 using Timber_and_Stone.Profession.Human;
+using Timber_and_Stone.Tasks;
 using Timber_and_Stone.Utility;
 using UnityEngine;
 
@@ -123,34 +124,37 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
                     entity = createHumanUnit(isArcher: true);
                     equipHuman(entity, true);
                     entity.unitName = NeutralUnit.HUMAN_ARCHER;
+                    entity.GetComponent<APlayableEntity>().preferences[UnitPreferences.NPC_ARCHER] = true;
                     break;
 
                 case NeutralUnit.GOBLIN_INFANTRY:
                     entity = createGoblinUnit();
                     equipGoblin(entity);
-                    entity.unitName = NeutralUnit.GOBLIN_INFANTRY;
                     break;
 
                 case NeutralUnit.GOBLIN_ARCHER:
                     entity = createGoblinUnit();
                     equipGoblin(entity, true);
-                    entity.unitName = NeutralUnit.GOBLIN_ARCHER;
+                    entity.GetComponent<APlayableEntity>().preferences[UnitPreferences.NPC_ARCHER] = true;
                     break;
 
                 case NeutralUnit.SKELETON_INFANTRY:
                     entity = createSkeletonUnit();
                     equipSkeleton(entity);
-                    entity.unitName = NeutralUnit.SKELETON_INFANTRY;
                     break;
 
                 case NeutralUnit.SKELETON_ARCHER:
                     entity = createSkeletonUnit();
                     equipSkeleton(entity, true);
-                    entity.unitName = NeutralUnit.SKELETON_ARCHER;
+                    entity.GetComponent<APlayableEntity>().preferences[UnitPreferences.NPC_ARCHER] = true;
                     break;
             }
 
             entity.faction = worldManager.MigrantFaction;
+            entity.hitpoints = entity.maxHP;
+            entity.spottedTimer = 10f;
+
+            entity.GetComponent<APlayableEntity>().preferences[UnitPreferences.NPC_FRIENDLY] = true;
 
             Coordinate coordinate = Coordinate.FromWorld(position);
             if ((tempEnemyBlock = buildingSerive.getBlock(coordinate)).properties.getID() != 0)
@@ -160,45 +164,9 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 
             entity.coordinate = coordinate;
 
-            return entity;
-        }
-
-        public APlayableEntity addGoblinMercenary(Vector3 position)
-        {
-            GoblinEntity entity = assetManager.InstantiateUnit<GoblinEntity>();
-            entity.addProfession(new Timber_and_Stone.Profession.Goblin.Infantry(entity, UnityEngine.Random.Range(300, 500)));
-            entity.name = "Goblin Mercenary";
-
-            equipGoblin(entity, UnityEngine.Random.Range(1, 3) == 1);
-            updateMercenary(entity, position);
+            entity.interruptTask(new TaskWait(10));
 
             return entity;
-        }
-
-        public APlayableEntity addSkeletonMercenary(Vector3 position)
-        {
-            SkeletonEntity entity = assetManager.InstantiateUnit<SkeletonEntity>();
-            entity.addProfession(new Timber_and_Stone.Profession.Undead.Infantry(entity, UnityEngine.Random.Range(300, 500)));
-            entity.name = "Skeleton Mercenary";
-
-            equipSkeleton(entity, UnityEngine.Random.Range(1, 3) == 1);
-            updateMercenary(entity, position);
-
-            return entity;
-        }
-
-        private void updateMercenary(APlayableEntity entity, Vector3 position)
-        {
-            Coordinate coordinate = Coordinate.FromWorld(position);
-            if ((tempEnemyBlock = buildingSerive.getBlock(coordinate)).properties.getID() != 0)
-            {
-                coordinate = tempEnemyBlock.relative(0, 1, 0).coordinate;
-            }
-
-            entity.coordinate = coordinate;
-            entity.faction = worldManager.PlayerFaction;
-
-            unitManager.AddMigrantResources(entity);
         }
 
         public Vector3 getRandomRoadPosition()
@@ -371,7 +339,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
         private ALivingEntity createGoblinUnit()
         {
             GoblinEntity unit = assetManager.InstantiateUnit<GoblinEntity>();
-            unit.addProfession(new Timber_and_Stone.Profession.Goblin.Infantry(unit, 100));
+            unit.addProfession(new Timber_and_Stone.Profession.Goblin.Infantry(unit, getRandomeExperience()));
             
             unit.faction = worldManager.GoblinFaction;           
 
@@ -381,7 +349,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
         private ALivingEntity createSkeletonUnit()
         {
             SkeletonEntity unit = assetManager.InstantiateUnit<SkeletonEntity>();
-            unit.addProfession(new Timber_and_Stone.Profession.Undead.Infantry(unit, 100));
+            unit.addProfession(new Timber_and_Stone.Profession.Undead.Infantry(unit, getRandomeExperience()));
 
             unit.faction = worldManager.UndeadFaction;
 
@@ -391,34 +359,41 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
         private ALivingEntity createNecromancerUnit()
         {
             NecromancerEntity unit = assetManager.InstantiateUnit<NecromancerEntity>();
-            unit.addProfession(new Timber_and_Stone.Profession.Undead.Infantry(unit, 100));
+            unit.addProfession(new Timber_and_Stone.Profession.Undead.Infantry(unit, getRandomeExperience()));
            
             unit.faction = worldManager.UndeadFaction;
 
             return unit;
         }
-        
+
+        private int getRandomeExperience()
+        {
+            return UnityEngine.Random.Range(300, 1500);
+        }
+
         private void equipGoblin(ALivingEntity entity, bool addBow = false)
         {
+            entity.inventory.Add(4, 5);
             entity.inventory.Add(UnityEngine.Random.Range(150, 152 + 1), 1);
             entity.inventory.Add(UnityEngine.Random.Range(170, 171 + 1), 1);
 
             if (addBow)
             {
                 entity.inventory.Add(UnityEngine.Random.Range(153, 154 + 1), 1);
-                entity.inventory.Add(Resource.FromID(Extension_Methods.RandomElement<int>(resourceManager.listIndexArrowBest)), UnityEngine.Random.Range(6, 23));        
+                entity.inventory.Add(Resource.FromID(Extension_Methods.RandomElement<int>(resourceManager.listIndexArrowBest)), 25);        
             }
         }
 
         private void equipSkeleton(ALivingEntity entity, bool addBow = false)
         {
+            entity.inventory.Add(4, 5);
             entity.inventory.Add(UnityEngine.Random.Range(180, 181 + 1), 1);
             entity.inventory.Add(190, 1);
 
             if (addBow)
             {
                 entity.inventory.Add(182, 1);
-                entity.inventory.Add(Resource.FromID(Extension_Methods.RandomElement<int>(resourceManager.listIndexArrowBest)), UnityEngine.Random.Range(6, 23));
+                entity.inventory.Add(Resource.FromID(Extension_Methods.RandomElement<int>(resourceManager.listIndexArrowBest)), 25);
             }
         }
 
@@ -431,7 +406,23 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
             if (addBow)
             {
                 entity.inventory.Add(96, 1);
-                entity.inventory.Add(Resource.FromID(Extension_Methods.RandomElement<int>(resourceManager.listIndexArrowBest)), UnityEngine.Random.Range(6, 23));
+                entity.inventory.Add(Resource.FromID(Extension_Methods.RandomElement<int>(resourceManager.listIndexArrowBest)), 25);
+            }
+        }
+
+        public void equipNPC(ALivingEntity entity, bool isArcher = false)
+        {
+            if (entity is HumanEntity)
+            {
+                equipHuman(entity, isArcher);
+            }
+            else if (entity is GoblinEntity)
+            {
+                equipGoblin(entity, isArcher);
+            }
+            else if (entity is SkeletonEntity)
+            {
+                equipSkeleton(entity, isArcher);
             }
         }
     }

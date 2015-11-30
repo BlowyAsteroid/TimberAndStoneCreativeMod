@@ -14,14 +14,19 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         public const String HUMAN_INFANTRY = "Human Infantry";
         public const String HUMAN_ARCHER = "Human Archer";
 
-        public static NeutralUnit GoblinInfantry = new NeutralUnit(GOBLIN_INFANTRY);
-        public static NeutralUnit GoblinArcher = new NeutralUnit(GOBLIN_ARCHER);
-        public static NeutralUnit SkeletonInfantry = new NeutralUnit(SKELETON_INFANTRY);
-        public static NeutralUnit SkeletonArcher = new NeutralUnit(SKELETON_ARCHER);
-        public static NeutralUnit HumanInfantry = new NeutralUnit(HUMAN_INFANTRY);
-        public static NeutralUnit HumanArcher = new NeutralUnit(HUMAN_ARCHER);
+        public static readonly List<String> NameList = new List<String>() 
+        {
+            GOBLIN_INFANTRY, GOBLIN_ARCHER, SKELETON_INFANTRY, SKELETON_ARCHER, HUMAN_INFANTRY, HUMAN_ARCHER
+        };
 
-        public static NeutralUnit[] List = new NeutralUnit[] 
+        public static readonly NeutralUnit GoblinInfantry = new NeutralUnit(GOBLIN_INFANTRY);
+        public static readonly NeutralUnit GoblinArcher = new NeutralUnit(GOBLIN_ARCHER);
+        public static readonly NeutralUnit SkeletonInfantry = new NeutralUnit(SKELETON_INFANTRY);
+        public static readonly NeutralUnit SkeletonArcher = new NeutralUnit(SKELETON_ARCHER);
+        public static readonly NeutralUnit HumanInfantry = new NeutralUnit(HUMAN_INFANTRY);
+        public static readonly NeutralUnit HumanArcher = new NeutralUnit(HUMAN_ARCHER);
+
+        public static readonly NeutralUnit[] List = new NeutralUnit[] 
         {
             HumanInfantry, HumanArcher, GoblinInfantry, GoblinArcher, SkeletonInfantry, SkeletonArcher
         };

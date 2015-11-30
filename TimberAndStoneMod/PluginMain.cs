@@ -5,6 +5,8 @@ using Timber_and_Stone.API.Event;
 using Timber_and_Stone.Event;
 using UnityEngine;
 using System;
+using System.Linq;
+using Timber_and_Stone.Tasks;
 
 namespace Plugin.BlowyAsteroid.TimberAndStoneMod
 {
@@ -16,6 +18,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
             ModComponent.addComponent(typeof(CheatMenuComponent));
             ModComponent.addComponent(typeof(CreativeMenuComponent));
             ModComponent.addComponent(typeof(TimeComponent));
+            ModComponent.addComponent(typeof(FriendlyNpcComponent));
         }        
 
         public override void OnEnable()
@@ -50,8 +53,13 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         [Timber_and_Stone.API.Event.EventHandler(Priority.Monitor)]
         public void onEntityDeathMonitor(EventEntityDeath evt)
         {
+            if (!UnitService.isFriendly(evt.getUnit()))
+            {
+                FriendlyNpcComponent.updateNPCsNear(evt.getUnit());
+            }
+
             if (evt.result != Result.Deny) return;
-                        
+
             ALivingEntity unit = evt.getUnit();
             unit.hitpoints = unit.maxHP;
             unit.hunger = 0f;
