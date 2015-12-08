@@ -421,8 +421,9 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
         private ChunkData getChunkData(Coordinate coordinate)
         {
             return chunkManager.chunkArray[coordinate.chunk.x, coordinate.chunk.y, coordinate.chunk.z];
-        }        
-        
+        }
+
+        private static readonly int[] EMPTY_INT_ARRAY = new int[255];
         public void buildStructure(ref BuildStructure structure)
         {
             structure.isBuilt = true;
@@ -431,6 +432,8 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
             structure.RenderTextured();
             structure.HideAccessPoints();
             structure.AddBlocks(98);
+            structure.resourceTypes = EMPTY_INT_ARRAY;
+            structure.resourceAmounts = EMPTY_INT_ARRAY;
         }
     }
 }
