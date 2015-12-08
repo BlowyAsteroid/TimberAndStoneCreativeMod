@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using Timber_and_Stone;
-using Timber_and_Stone.Invasion;
 
 namespace Plugin.BlowyAsteroid.TimberAndStoneMod
 {
@@ -18,16 +14,16 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         public const String HUMAN_INFANTRY = "Human Infantry";
         public const String HUMAN_ARCHER = "Human Archer";
 
-        public static UnitEnemy GoblinInfantry = new UnitEnemy(GOBLIN_INFANTRY);
-        public static UnitEnemy GoblinArcher = new UnitEnemy(GOBLIN_ARCHER);
-        public static UnitEnemy SkeletonInfantry = new UnitEnemy(SKELETON_INFANTRY);
-        public static UnitEnemy SkeletonArcher = new UnitEnemy(SKELETON_ARCHER);
-        public static UnitEnemy Necromancer = new UnitEnemy(NECROMANCER);
+        public static readonly UnitEnemy GoblinInfantry = new UnitEnemy(GOBLIN_INFANTRY);
+        public static readonly UnitEnemy GoblinArcher = new UnitEnemy(GOBLIN_ARCHER);
+        public static readonly UnitEnemy SkeletonInfantry = new UnitEnemy(SKELETON_INFANTRY);
+        public static readonly UnitEnemy SkeletonArcher = new UnitEnemy(SKELETON_ARCHER);
+        public static readonly UnitEnemy Necromancer = new UnitEnemy(NECROMANCER);
 
-        public static UnitEnemy HumanInfantry = new UnitEnemy(HUMAN_INFANTRY);
-        public static UnitEnemy HumanArcher = new UnitEnemy(HUMAN_ARCHER);
+        public static readonly UnitEnemy HumanInfantry = new UnitEnemy(HUMAN_INFANTRY);
+        public static readonly UnitEnemy HumanArcher = new UnitEnemy(HUMAN_ARCHER);
 
-        public static UnitEnemy[] List = new UnitEnemy[] 
+        public static readonly UnitEnemy[] List = new UnitEnemy[] 
         {
             HumanInfantry, HumanArcher, GoblinInfantry, GoblinArcher, SkeletonInfantry, SkeletonArcher, Necromancer
         };

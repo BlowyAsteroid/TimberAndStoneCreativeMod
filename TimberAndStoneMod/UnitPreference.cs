@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Timber_and_Stone;
 
 namespace Plugin.BlowyAsteroid.TimberAndStoneMod
 {
@@ -13,23 +10,28 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
 
         public static void set(ALivingEntity entity, String prefernceName, bool value)
         {
-            if (entity == null || !(entity is APlayableEntity)) return;
+            if (!isPlayableEntity(entity)) return;
 
             entity.GetComponent<APlayableEntity>().preferences[prefernceName] = value;
         }
 
         public static bool isFriendlyNPC(ALivingEntity entity)
         {
-            if (entity == null || !(entity is APlayableEntity)) return false;
+            if (!isPlayableEntity(entity)) return false;
 
             return entity.GetComponent<APlayableEntity>().preferences[NPC_FRIENDLY];
         }
 
         public static bool isArcherNPC(ALivingEntity entity)
         {
-            if (entity == null || !(entity is APlayableEntity)) return false;
+            if (!isPlayableEntity(entity)) return false;
 
             return entity.GetComponent<APlayableEntity>().preferences[NPC_ARCHER];
+        }
+
+        public static bool isPlayableEntity(ALivingEntity entity)
+        {
+            return entity != null && entity is APlayableEntity;
         }
 
         private static Dictionary<APlayableEntity, APlayableEntity.Preferences> originalTraits

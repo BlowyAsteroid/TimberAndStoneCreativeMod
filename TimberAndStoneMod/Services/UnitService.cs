@@ -4,9 +4,7 @@ using System.Linq;
 using Timber_and_Stone;
 using Timber_and_Stone.API;
 using Timber_and_Stone.Invasion;
-using Timber_and_Stone.Profession.Human;
 using Timber_and_Stone.Tasks;
-using Timber_and_Stone.Utility;
 using UnityEngine;
 
 namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
@@ -75,11 +73,12 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
             return attempts < MAX_SPAWN_ATTEMPTS;
         }
 
+        private const String ANIMAL_RANDOM = "random";
         public void spawnAnimal()
         {
             if (unitManager.wildFaunaUnits.Count < MAX_ANIMAL_COUNT)
             {
-                unitManager.AddAnimal("random", Vector3.zero, false);
+                unitManager.AddAnimal(ANIMAL_RANDOM, Vector3.zero, false);
             }
         }
 

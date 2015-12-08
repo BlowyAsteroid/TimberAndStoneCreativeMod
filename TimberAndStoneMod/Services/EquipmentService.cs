@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Timber_and_Stone;
+﻿using Timber_and_Stone;
 using Timber_and_Stone.Profession.Human;
-using Timber_and_Stone.Utility;
 
 namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 {
     public sealed class EquipmentService
     {
-        private static EquipmentService instance = new EquipmentService();
+        private static readonly EquipmentService instance = new EquipmentService();
         public static EquipmentService getInstance() { return instance; }
 
         private ResourceManager resourceManager = ResourceManager.getInstance();

@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Timber_and_Stone;
 using Timber_and_Stone.API;
 using Timber_and_Stone.BlockData;
@@ -83,10 +82,10 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         private bool isPlacingHuman = false;
         private bool doPlaceHuman = false;
 
-        private UnitFriendly selectedNeutralType;
+        private UnitFriendly selectedFriendlyType;
         private bool isSelectingFriendlyType = false;
-        private bool isPlacingNeutral = false;
-        private bool doPlaceNeutral = false;
+        private bool isPlacingFriendly = false;
+        private bool doPlaceFriendly = false;
 
         private UnitEnemy selectedEnemyType;
         private bool isSelectingEnemyType = false;
@@ -133,9 +132,9 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                     isSelectingHumanType = false;
                 }
 
-                if (isPlacingNeutral)
+                if (isPlacingFriendly)
                 {
-                    isPlacingNeutral = false;
+                    isPlacingFriendly = false;
                     //selectedFriendlyType = null;
                 }
                 else if (isSelectingFriendlyType)
@@ -181,11 +180,11 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                         doPlaceHuman = true;
                     }
                 }
-                else if (isPlacingNeutral)
+                else if (isPlacingFriendly)
                 {
                     if (Input.GetKeyDown(PRIMARY_KEY))
                     {
-                        doPlaceNeutral = true;
+                        doPlaceFriendly = true;
                     }
                 }
                 else if (isPlacingEnemy)
@@ -243,6 +242,8 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                         if (Input.GetKey(KeyCode.LeftControl))
                         {
                             log("ID: " + tempBlock.properties.getID());
+                            log("Variation: " + controlPlayer.buildingVariationIndex);
+                            log("Name: " + tempBlock.properties.getName());
                         }
                     }
                 }
@@ -339,11 +340,19 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 {
                     selectedBlockType = controlPlayer.buildingMaterial;
 
-                    if (selectedBlockType.isTransparent() && selectedBlockType.getVariations() != null)
+                    if (selectedBlockType.getVariations() != null)
                     {
-                        selectedBlockData = controlPlayer.buildingVariations[controlPlayer.buildingVariationIndex][0];
+                        selectedBlockData = selectedBlockType.getVariations()[controlPlayer.buildingVariationIndex][0];
                     }
-                    else selectedBlockData = null;                  
+                    else
+                    {
+                        BlockDataTextureVariant textureData = new BlockDataTextureVariant(TextureVariant.None);
+
+                        textureData.setVariant(TextureVariant.Pillar, controlPlayer.buildingPillarless);
+                        textureData.setVariant(TextureVariant.Trimless, controlPlayer.buildingTrimless);
+
+                        selectedBlockData = textureData;
+                    }
                 }
 
                 if (doBuildStructures)
@@ -396,11 +405,11 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                     //Place Selected Unit Type At Mouse Position
                     unitService.addHuman(selectedUnitType, controlPlayer.WorldPositionAtMouse(), true);
                 }
-                else if (doPlaceNeutral)
+                else if (doPlaceFriendly)
                 {
-                    doPlaceNeutral = false;
-                    //Place Selected Neutral Type At Mouse Position
-                    unitService.addFriendlyNPC(selectedNeutralType, controlPlayer.WorldPositionAtMouse());
+                    doPlaceFriendly = false;
+                    //Place Selected Friendly Type At Mouse Position
+                    unitService.addFriendlyNPC(selectedFriendlyType, controlPlayer.WorldPositionAtMouse());
                 }
                 else if (doPlaceEnemy)
                 {
@@ -446,7 +455,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 {
                     Label("Player Units");
                 }
-                else if (isSelectingFriendlyType && !isPlacingNeutral)
+                else if (isSelectingFriendlyType && !isPlacingFriendly)
                 {
                     Label("Friendly NPCs");
                 }
@@ -459,9 +468,9 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                     Label(selectedUnitType.Name);
                     Label(getKeyString(PRIMARY_KEY) + " To Place");
                 }
-                else if (isPlacingNeutral)
+                else if (isPlacingFriendly)
                 {
-                    Label("Friendly: " + selectedNeutralType.Name);
+                    Label("Friendly: " + selectedFriendlyType.Name);
                     Label(getKeyString(PRIMARY_KEY) + " To Place");
                 }
                 else if (isPlacingEnemy)
@@ -550,15 +559,15 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                         }
                     }
                 }
-                else if (isSelectingFriendlyType && !isPlacingNeutral)
+                else if (isSelectingFriendlyType && !isPlacingFriendly)
                 {
                     //Place Neutral List
-                    foreach (UnitFriendly profession in UnitFriendly.List)
+                    foreach (UnitFriendly friendlyType in UnitFriendly.List)
                     {
-                        if (Button(profession.Name))
+                        if (Button(friendlyType.Name))
                         {
-                            selectedNeutralType = profession;
-                            isPlacingNeutral = true;
+                            selectedFriendlyType = friendlyType;
+                            isPlacingFriendly = true;
                         }
                     }
                 }
@@ -582,14 +591,26 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         private String getKeyString(KeyCode key)
         {
             return "[" + key + "]";
-        }        
+        }
 
+        private BlockDataTextureVariant tempBlockDataTextureVariant;
         private void updateControlPlayerBlockProperties(BlockProperties properties, IBlock block = null)
         {
             controlPlayer.buildingMaterial = properties;
             controlPlayer.buildTile = properties.getID();
-            controlPlayer.buildingVariations = properties.getVariations();           
+            controlPlayer.buildingVariations = properties.getVariations(); 
             controlPlayer.buildingVariationIndex = ModUtils.getVariationIndexFromBlock(block);
+
+            if (block != null && (tempBlockDataTextureVariant = block.getMeta<BlockDataTextureVariant>()) != null)
+            {
+                controlPlayer.buildingPillarless = tempBlockDataTextureVariant.checkVariant(TextureVariant.Pillar);                
+                controlPlayer.buildingTrimless = tempBlockDataTextureVariant.checkVariant(TextureVariant.Trimless);
+            }
+            else
+            {
+                controlPlayer.buildingPillarless = false;
+                controlPlayer.buildingTrimless = false;
+            }
         }
     }
 }

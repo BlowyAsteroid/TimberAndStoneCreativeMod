@@ -1,6 +1,4 @@
-﻿using Plugin.BlowyAsteroid.TimberAndStoneMod.Components;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Timber_and_Stone;
 using Timber_and_Stone.API;
@@ -11,7 +9,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 {
     public sealed class BuildingService
     {
-        private static BuildingService instance = new BuildingService();
+        private static readonly BuildingService instance = new BuildingService();
         public static BuildingService getInstance() { return instance; }
 
         private TerrainObjectManager terrainManager = TerrainObjectManager.getInstance();
@@ -33,7 +31,11 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
         
         public bool removeBlock(Coordinate coordinate)
         {
-            return coordinate.absolute.y > 0 ? buildBlock(coordinate, BlockAir.BlockAir) != null : false;
+            if(coordinate.absolute.y > 0 && ModUtils.isBuildable(getBlock(coordinate).properties))
+            {
+                return buildBlock(coordinate, BlockAir.BlockAir) != null;
+            }
+            else return false;
         }        
 
         public List<Coordinate> getSelectedCoordinates(bool excludeAirBlocks = false, bool onlyAirBlocks = false)
@@ -242,6 +244,8 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 
                 tempReplaceBlock = getBlock(coordinate);
 
+                if (!ModUtils.isBuildable(tempReplaceBlock.properties)) continue;
+
                 if (tempReplaceBlock.properties.getVariations() != null)
                 {
                     switch (properties.getID())
@@ -265,11 +269,9 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
                         default:
                             tempReplaceBlockProperties = properties;
                             break;
-                    }                    
+                    }
 
                     tempReplaceBlockData = tempReplaceBlock.properties.getVariations()[ModUtils.getVariationIndexFromBlock(tempReplaceBlock)][0];
-
-                    replacedBlocks.Add(buildBlock(coordinate, tempReplaceBlockProperties, tempReplaceBlockData));
                 }
                 else
                 {
@@ -299,16 +301,15 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
                         }
 
                         tempReplaceBlockData = properties.getVariations()[ModUtils.getVariationIndexFromBlock(tempReplaceBlock)][0];
-
                     }
                     else
                     {
                         tempReplaceBlockProperties = properties;
-                        data = null;
+                        tempReplaceBlockData = data;
                     }
-
-                    replacedBlocks.Add(buildBlock(coordinate, tempReplaceBlockProperties, data));
                 }
+
+                replacedBlocks.Add(buildBlock(coordinate, tempReplaceBlockProperties, tempReplaceBlockData));
 
                 tempReplaceBlockProperties = null;
                 tempReplaceBlockData = null;                

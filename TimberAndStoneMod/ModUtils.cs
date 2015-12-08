@@ -1,8 +1,6 @@
-﻿using Plugin.BlowyAsteroid.TimberAndStoneMod.Components;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using Timber_and_Stone;
 using Timber_and_Stone.API;
@@ -12,7 +10,7 @@ using UnityEngine;
 
 namespace Plugin.BlowyAsteroid.TimberAndStoneMod
 {
-    public class ModUtils
+    public static class ModUtils
     {
         private const float BLOCK_TO_WORLD_SIZE = 0.2f;
         private const float BLOCK_TO_CHUNK_SIZE = 0.1f;

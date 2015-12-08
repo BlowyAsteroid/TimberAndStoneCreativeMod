@@ -15,9 +15,9 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
 
         protected class Mouse
         {
-            public static int LEFT = 0;
-            public static int RIGHT = 1;
-            public static int MIDDLE = 2;
+            public const int LEFT = 0;
+            public const int RIGHT = 1;
+            public const int MIDDLE = 2;
             public const String SCROLL_WHEEL = "Mouse ScrollWheel";
         }
 
@@ -230,7 +230,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
             }
             else
             {
-                parentContainer.x = Screen.width - originalWidth - BUTTON_PADDING * 2 + SCROLL_BAR_SIZE;
+                parentContainer.x = Screen.width - originalWidth - DOUBLE_PADDING + SCROLL_BAR_SIZE;
                 scrollViewContainer.height = parentContainer.height - BUTTON_HEIGHT * windowControlIndex - DOUBLE_PADDING;
             }
 
