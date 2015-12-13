@@ -414,6 +414,12 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 else if (doRemoveEntity)
                 {
                     doRemoveEntity = false;
+
+                    if (UnitService.isFriendly(selectedEntity) && worldManager.PlayerFaction.units.Count() <= 1)
+                    {
+                        log("Unable to remove player unit. There must be at least one unit in the player faction.");
+                        return;
+                    }
                     //Remove Entity
                     selectedEntity.Destroy();
                     selectedEntity = null;
