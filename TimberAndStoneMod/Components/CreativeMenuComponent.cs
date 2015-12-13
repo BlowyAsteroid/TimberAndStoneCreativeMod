@@ -59,6 +59,11 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         private IBlockData selectedBlockData;
         private List<BlockProperties> availableBlockTypes;
 
+        private ALivingEntity selectedEntity;
+        private MonoBehaviour selectedObject { get { return worldManager.PlayerFaction.selectedObject; } }
+        private bool isEntitySelected { get { return selectedEntity != null; } }
+        private bool doRemoveEntity = false;
+
         private bool doCreateBlocks = false;
         private bool doReplaceBlocks = false;
         private bool doRemoveBlocks = false;
@@ -129,6 +134,11 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 else if (isSelectingEnemyType)
                 {
                     isSelectingEnemyType = false;
+                }
+
+                if (isEntitySelected)
+                {
+                    selectedEntity = null;
                 }
 
                 isMouseInGUIOverride = false;
@@ -217,6 +227,17 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                             log("Variation: " + controlPlayer.buildingVariationIndex);
                             log("Name: " + tempBlock.properties.getName());
                         }
+                    }
+                    else if (Input.GetMouseButtonUp(Mouse.LEFT) && !isMouseInGui)
+                    {
+                        if (selectedObject != null)
+                        {
+                            if (selectedEntity == null || selectedEntity != selectedObject.GetComponent<ALivingEntity>())
+                            {
+                                selectedEntity = selectedObject.GetComponent<ALivingEntity>();
+                            }
+                        }
+                        else selectedEntity = null;
                     }
                 }
                 else if (isSelecting)
@@ -390,6 +411,13 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                         unitService.addEnemy(selectedEnemyType, mouseWorldPosition);
                     }
                 }
+                else if (doRemoveEntity)
+                {
+                    doRemoveEntity = false;
+                    //Remove Entity
+                    selectedEntity.Destroy();
+                    selectedEntity = null;
+                }
                 else if (doSaveGame)
                 {
                     doSaveGame = false;
@@ -422,7 +450,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 
             CheckBox("Creative", ref modSettings.isCreativeEnabled);
 
-            if (isMouseHover || isDesigning || isSelectingUnitType)
+            if (isMouseHover || isDesigning || isSelectingUnitType || isEntitySelected)
             {
                 if (modSettings.isCreativeEnabled)
                 {
@@ -488,6 +516,11 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                             Button("Remove All Trees", ref doRemoveAllTrees);
                         }
                     }
+                    else if (isEntitySelected)
+                    {
+                        Label(selectedEntity.unitName);
+                        Button("Remove Entity", ref doRemoveEntity);
+                    }
                     else if (!isSelecting && !isDesigning && !isSelectingUnitType)
                     {
                         if (Time.timeSinceLevelLoad > 12f)
@@ -506,7 +539,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                             {
                                 isSelectingEnemyType = true;
                             }
-                        }
+                        }                        
                     }
                     else if (isSelectingHumanType && !isPlacingHuman)
                     {
