@@ -1,9 +1,10 @@
 ﻿
+using System.Collections.Generic;
 namespace Plugin.BlowyAsteroid.TimberAndStoneMod
 {
     public static class ResourceId
     {
-        public const int DIRT = 1;
+        public const int DIRT = 1;//First Raw Material
         public const int RAW_STONE = 2;
         public const int RAW_WOOD = 3;
         public const int FOOD = 4;
@@ -34,8 +35,8 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         public const int POTATO_SEED = 34;
         public const int PUMPKIN_SEED = 35;
         public const int TURNIP_SEED = 36;
-        public const int WHEAT_SEED = 37;
-        public const int TIMBER = 40;
+        public const int WHEAT_SEED = 37;//Last Raw Material
+        public const int TIMBER = 40;//First Processed Material
         public const int STRONG_TIMBER = 41;
         public const int TWINE = 42;
         public const int ROPE = 43;
@@ -51,8 +52,8 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         public const int SOLID_INGOT = 53;
         public const int STRONG_INGOT = 54;
         public const int COIN = 55;
-        public const int BANDAGES = 56;
-        public const int KNIFE = 60;
+        public const int BANDAGES = 56;//Last Processed Material
+        public const int KNIFE = 60;//First Human Gear
         public const int SHARP_KNIFE = 61;
         public const int SHEARS = 62;
         public const int SHARP_SHEARS = 63;
@@ -119,8 +120,8 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         public const int BUCKLER = 137;
         public const int KITE_SHIELD = 138;
         public const int HEATER_SHIELD = 139;
-        public const int TOWER_SHIELD = 140;
-        public const int GOBLIN_BONECLUB = 150;
+        public const int TOWER_SHIELD = 140;//Last Human Gear
+        public const int GOBLIN_BONECLUB = 150;//First Enemy Gear
         public const int GOBLIN_SHORTSWORD = 151;
         public const int GOBLIN_CLEAVER = 152;
         public const int GOBLIN_SHORTBOW = 153;
@@ -130,7 +131,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         public const int SKELETAL_SHORTSWORD = 180;
         public const int SKELETAL_CLAYMORE = 181;
         public const int SKELETAL_BOW = 182;
-        public const int SKELETAL_ROUND_SHIELD = 190;
+        public const int SKELETAL_ROUND_SHIELD = 190;//Last Enemy Gear
 
 
         public static int getRandomGoblinMeleeWeapon()
@@ -151,6 +152,24 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         public static int getRandomSkeletonMeleeWeapon()
         {
             return UnityEngine.Random.Range(SKELETAL_SHORTSWORD, SKELETAL_CLAYMORE + 1);
+        }
+
+        public static readonly List<int> RawMaterialList = getResourceIds(DIRT, WHEAT_SEED);
+        public static readonly List<int> ProcessedMaterialList = getResourceIds(TIMBER, BANDAGES);
+        public static readonly List<int> AllPlayerResources = getResourceIds(DIRT, TOWER_SHIELD);
+        public static readonly List<int> HumanGearList = getResourceIds(KNIFE, TOWER_SHIELD);
+        public static readonly List<int> EnemyGearList = getResourceIds(GOBLIN_BONECLUB, SKELETAL_ROUND_SHIELD);
+        
+        private static List<int> getResourceIds(int start, int end)
+        {
+            List<int> ids = new List<int>();
+
+            for (int i = start; i < end + 1; i++)
+            {
+                ids.Add(i);
+            }
+
+            return ids;
         }
 
     }

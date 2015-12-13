@@ -51,15 +51,13 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         private bool isStructuring { get { return controlPlayer.designing && controlPlayer.designType == eDesignType.STRUCTURE; } }
         private bool isSelecting { get { return controlPlayer.selecting; } }
         private bool isDesigning { get { return controlPlayer.designing; } }
-        private bool isSelectingUnitType { get { return isSelectingHumanType || isSelectingEnemyType || isSelectingFriendlyType; } }
+        private bool isSelectingUnitType { get { return isSelectingHumanType || isSelectingEnemyType; } }
 
         private bool isScrolling { get { return Input.GetAxis(Mouse.SCROLL_WHEEL) != 0; } }
 
         private BlockProperties selectedBlockType;
         private IBlockData selectedBlockData;
         private List<BlockProperties> availableBlockTypes;
-
-        private bool isCreativeEnabled = false;
 
         private bool doCreateBlocks = false;
         private bool doReplaceBlocks = false;
@@ -76,23 +74,16 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         private bool isMouseInGUIOverride = false;
         private bool isScrollOverride = false;
 
-
-        private UnitProfession selectedUnitType;
+        private UnitHuman selectedUnitType;
         private bool isSelectingHumanType = false;
         private bool isPlacingHuman = false;
         private bool doPlaceHuman = false;
-
-        private UnitFriendly selectedFriendlyType;
-        private bool isSelectingFriendlyType = false;
-        private bool isPlacingFriendly = false;
-        private bool doPlaceFriendly = false;
 
         private UnitEnemy selectedEnemyType;
         private bool isSelectingEnemyType = false;
         private bool isPlacingEnemy = false;
         private bool doPlaceEnemy = false;
-
-
+        
         public void Start()
         {
             setUpdatesPerSecond(5);
@@ -125,27 +116,15 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 if (isPlacingHuman)
                 {
                     isPlacingHuman = false;
-                    //selectedUnitType = null;
                 }
                 else if (isSelectingHumanType)
                 {
                     isSelectingHumanType = false;
                 }
 
-                if (isPlacingFriendly)
-                {
-                    isPlacingFriendly = false;
-                    //selectedFriendlyType = null;
-                }
-                else if (isSelectingFriendlyType)
-                {
-                    isSelectingFriendlyType = false;
-                }
-
                 if (isPlacingEnemy)
                 {
                     isPlacingEnemy = false;
-                    //selectedEnemyType = null;
                 }
                 else if (isSelectingEnemyType)
                 {
@@ -155,7 +134,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 isMouseInGUIOverride = false;
             }
 
-            if (isCreativeEnabled)
+            if (modSettings.isCreativeEnabled)
             {
                 shiftClickUp = (Input.GetMouseButtonUp(Mouse.LEFT) && Input.GetKey(KeyCode.LeftShift));
 
@@ -178,13 +157,6 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                     if (Input.GetKeyDown(PRIMARY_KEY))
                     {
                         doPlaceHuman = true;
-                    }
-                }
-                else if (isPlacingFriendly)
-                {
-                    if (Input.GetKeyDown(PRIMARY_KEY))
-                    {
-                        doPlaceFriendly = true;
                     }
                 }
                 else if (isPlacingEnemy)
@@ -322,19 +294,20 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
             catch (Exception e)
             {
                 log(e.Message);
+                e.StackTrace.Split(Environment.NewLine.ToCharArray()).ToList().ForEach(line => log(line));
             }
         }
-        
+
         public void postUpdate()
         {
             if (!isTimeToUpdate(DateTime.Now.Ticks)) return;
-            
+
             if (isScrollOverride && !isScrolling)
             {
                 isScrollOverride = false;
             }
 
-            if (isCreativeEnabled)
+            if (modSettings.isCreativeEnabled)
             {
                 if (doCreateBlocks || doReplaceBlocks)
                 {
@@ -402,20 +375,20 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 else if (doPlaceHuman)
                 {
                     doPlaceHuman = false;
-                    //Place Selected Unit Type At Mouse Position
-                    unitService.addHuman(selectedUnitType, controlPlayer.WorldPositionAtMouse(), true);
-                }
-                else if (doPlaceFriendly)
-                {
-                    doPlaceFriendly = false;
-                    //Place Selected Friendly Type At Mouse Position
-                    unitService.addFriendlyNPC(selectedFriendlyType, controlPlayer.WorldPositionAtMouse());
+                    if (isMouseInWorld(out mouseWorldPosition))
+                    {
+                        //Place Selected Unit Type At Mouse Position
+                        unitService.addHuman(selectedUnitType, mouseWorldPosition, autoAccept: true);
+                    }                    
                 }
                 else if (doPlaceEnemy)
                 {
                     doPlaceEnemy = false;
-                    //Place Selected Enemy Type At Mouse Position
-                    unitService.addEnemy(selectedEnemyType, controlPlayer.WorldPositionAtMouse());
+                    if (isMouseInWorld(out mouseWorldPosition))
+                    {
+                        //Place Selected Enemy Type At Mouse Position
+                        unitService.addEnemy(selectedEnemyType, mouseWorldPosition);
+                    }
                 }
                 else if (doSaveGame)
                 {
@@ -423,14 +396,14 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 
                     if (Time.timeSinceLevelLoad > 12f)
                     {
-                        log("Saving: " + WorldManager.getInstance().settlementName);
-                        WorldManager.getInstance().SaveGame();
+                        log("Saving: " + worldManager.settlementName);
+                        worldManager.SaveGame();
                     }
                     else log("Unable to save. Press play until save button is visible then try again.");
                 }
             }
-        }
-
+        }        
+        
         public void OnGUI()
         {
             if (isGameRunning)
@@ -438,7 +411,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 if (isComponentVisible)
                 { 
                     parentContainer = createWindow(PARENT_CONTAINER_ID, parentContainer, drawBuildWindow);
-                    updateMouseForUI(parentContainer);
+                    isMouseHover = updateMouseForUI(parentContainer);
                 }
             }
         }
@@ -447,139 +420,116 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         {
             Window(parentContainer, PARENT_CONTAINER_TITLE);
 
-            CheckBox("Creative", ref isCreativeEnabled);
+            CheckBox("Creative", ref modSettings.isCreativeEnabled);
 
-            if (isCreativeEnabled)
+            if (isMouseHover || isDesigning || isSelectingUnitType)
             {
-                if (isSelectingHumanType && !isPlacingHuman)
+                if (modSettings.isCreativeEnabled)
                 {
-                    Label("Player Units");
-                }
-                else if (isSelectingFriendlyType && !isPlacingFriendly)
-                {
-                    Label("Friendly NPCs");
-                }
-                else if (isSelectingEnemyType && !isPlacingEnemy)
-                {
-                    Label("Enemy NPCs");
-                }
-                else if (isPlacingHuman)
-                {
-                    Label(selectedUnitType.Name);
-                    Label(getKeyString(PRIMARY_KEY) + " To Place");
-                }
-                else if (isPlacingFriendly)
-                {
-                    Label("Friendly: " + selectedFriendlyType.Name);
-                    Label(getKeyString(PRIMARY_KEY) + " To Place");
-                }
-                else if (isPlacingEnemy)
-                {
-                    Label("Enemy: " + selectedEnemyType.Name);
-                    Label(getKeyString(PRIMARY_KEY) + " To Place");
-                }
+                    if (isSelectingHumanType && !isPlacingHuman)
+                    {
+                        Label("Player Units");
+                    }
+                    else if (isSelectingEnemyType && !isPlacingEnemy)
+                    {
+                        Label("Enemy Units");
+                    }
+                    else if (isPlacingHuman)
+                    {
+                        Label(selectedUnitType.Name);
+                        Label(getKeyString(PRIMARY_KEY) + " To Place");
+                    }
+                    else if (isPlacingEnemy)
+                    {
+                        Label("Enemy: " + selectedEnemyType.Name);
+                        Label(getKeyString(PRIMARY_KEY) + " To Place");
+                    }
 
-                else if (isBuilding)
-                {
+                    else if (isBuilding)
+                    {
+                        if (isSelecting)
+                        {
+                            Label("Hold " + getKeyString(PRIMARY_KEY) + " to Replace");
+                            Label("Hold " + getKeyString(PICK_BLOCK_KEY) + " to Smooth");
+                        }
+                        else if (isDesigning)
+                        {
+                            Label(controlPlayer.buildingMaterial.getName());
+                        }
+                    }
+
                     if (isSelecting)
                     {
-                        Label("Hold " + getKeyString(PRIMARY_KEY) + " to Replace");
-                        Label("Hold " + getKeyString(PICK_BLOCK_KEY) + " to Smooth");
-                    }
-                    else if (isDesigning)
-                    {
-                        Label(controlPlayer.buildingMaterial.getName());
-                    }
-                }
-
-                if (isSelecting)
-                {
-                    if (!isScrollOverride)
-                    {
-                        guiManager.mouseInGUI = isMouseInGUIOverride;
-                    }
-                }
-            }
-
-            BeginScrollView(scrollViewContainer, scrollContainer);
-
-            if (isCreativeEnabled)
-            {
-                if (isDesigning && !isSelecting)
-                {
-                    if (isBuilding)
-                    {
-                        foreach (BlockProperties properties in availableBlockTypes)
+                        if (!isScrollOverride)
                         {
-                            if(Button(properties.getName()))
+                            guiManager.mouseInGUI = isMouseInGUIOverride;
+                        }
+                    }               
+
+                    BeginScrollView(scrollViewContainer, scrollContainer);
+
+                    if (isDesigning && !isSelecting)
+                    {
+                        if (isBuilding)
+                        {
+                            foreach (BlockProperties properties in availableBlockTypes)
                             {
-                                updateControlPlayerBlockProperties(properties);
-                                break;
+                                if (Button(properties.getName()))
+                                {
+                                    updateControlPlayerBlockProperties(properties);
+                                    break;
+                                }
+                            }
+                        }
+                        else if (isChopping)
+                        {
+                            Label(getKeyString(PRIMARY_KEY) + " Place Tree");
+                            Label(getKeyString(PICK_BLOCK_KEY) + " Place Shrub");
+                            Button("Remove All Trees", ref doRemoveAllTrees);
+                        }
+                    }
+                    else if (!isSelecting && !isDesigning && !isSelectingUnitType)
+                    {
+                        if (Time.timeSinceLevelLoad > 12f)
+                        {
+                            Button("Save Game", ref doSaveGame);
+                        }
+
+                        if (Button("Add Player Units"))
+                        {
+                            isSelectingHumanType = true;
+                        }
+
+                        if (!modSettings.isPeacefulEnabled)
+                        {
+                            if (Button("Add Enemy Units"))
+                            {
+                                isSelectingEnemyType = true;
                             }
                         }
                     }
-                    else if (isChopping)
+                    else if (isSelectingHumanType && !isPlacingHuman)
                     {
-                        Label(getKeyString(PRIMARY_KEY) + " Place Tree");
-                        Label(getKeyString(PICK_BLOCK_KEY) + " Place Shrub");
-                        Button("Remove All Trees", ref doRemoveAllTrees);
-                    }
-                }
-                else if(!isSelecting && !isDesigning && !isSelectingUnitType)
-                {
-                    if (Time.timeSinceLevelLoad > 12f)
-                    {
-                        Button("Save Game", ref doSaveGame);
-                    }
-
-                    if (Button("Add Player Units"))
-                    {
-                        isSelectingHumanType = true;
-                    }
-
-                    if (Button("Add Friendly NPCs"))
-                    {
-                        isSelectingFriendlyType = true;
-                    }
-
-                    if (Button("Add Enemy NPCs"))
-                    {
-                        isSelectingEnemyType = true;
-                    }
-                }
-                else if (isSelectingHumanType && !isPlacingHuman)
-                {
-                    //Place Human List
-                    foreach (UnitProfession profession in UnitProfession.List)
-                    {
-                        if (Button(profession.Name))
+                        //Place Human List
+                        foreach (UnitHuman profession in UnitHuman.List)
                         {
-                            selectedUnitType = profession;
-                            isPlacingHuman = true;
+                            if (Button(profession.Name))
+                            {
+                                selectedUnitType = profession;
+                                isPlacingHuman = true;
+                            }
                         }
                     }
-                }
-                else if (isSelectingFriendlyType && !isPlacingFriendly)
-                {
-                    //Place Neutral List
-                    foreach (UnitFriendly friendlyType in UnitFriendly.List)
+                    else if (isSelectingEnemyType && !isPlacingEnemy)
                     {
-                        if (Button(friendlyType.Name))
+                        //Place Enemy List
+                        foreach (UnitEnemy enemyType in UnitEnemy.List)
                         {
-                            selectedFriendlyType = friendlyType;
-                            isPlacingFriendly = true;
-                        }
-                    }
-                }
-                else if (isSelectingEnemyType && !isPlacingEnemy)
-                {
-                    //Place Enemy List
-                    foreach (UnitEnemy enemyType in UnitEnemy.List)
-                    {
-                        if (Button(enemyType.Name))
-                        {
-                            selectedEnemyType = enemyType;
-                            isPlacingEnemy = true;
+                            if (Button(enemyType.Name))
+                            {
+                                selectedEnemyType = enemyType;
+                                isPlacingEnemy = true;
+                            }
                         }
                     }
                 }

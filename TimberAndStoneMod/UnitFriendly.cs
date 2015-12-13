@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Plugin.BlowyAsteroid.TimberAndStoneMod
 {
-    public class UnitFriendly
+    public sealed class UnitFriendly
     {
         public const String GOBLIN_INFANTRY = "Goblin Infantry";
         public const String GOBLIN_ARCHER = "Goblin Archer";

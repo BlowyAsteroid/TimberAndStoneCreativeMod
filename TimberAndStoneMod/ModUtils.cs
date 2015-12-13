@@ -45,32 +45,9 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
                 && designManagerSelectedBlocks[0] != null
                 && designManagerSelectedBlocks[1] == Vector3.zero;
         }
-
-        public static bool isCoordinateWithinWorld(Coordinate coordinate, Vector3 worldSize)
-        {
-            return coordinate.chunk.x >= 0 && coordinate.chunk.x <= worldSize.x
-                && coordinate.chunk.y >= 0 && coordinate.chunk.y <= worldSize.y
-                && coordinate.chunk.z >= 0 && coordinate.chunk.z <= worldSize.z;
-        }
-
-        private static Vector3 vectorFrom = Vector3.zero;
-        public static Coordinate getCoordinateFromBelow(Coordinate coordinate)
-        {
-            vectorFrom.Set(coordinate.world.x, coordinate.world.y - BLOCK_TO_WORLD_SIZE, coordinate.world.z);
-
-            return Coordinate.FromWorld(vectorFrom);
-        }
-
-        public static Coordinate getCoordinateFromAbove(Coordinate coordinate)
-        {
-            vectorFrom.Set(coordinate.world.x, coordinate.world.y + BLOCK_TO_WORLD_SIZE, coordinate.world.z);
-
-            return Coordinate.FromWorld(vectorFrom);
-        }
                 
         private static List<String> usedBlockNames = new List<String>();
         private static List<BlockProperties> availableBlockTypes = new List<BlockProperties>();
-        private static Regex excludeNames = new Regex("(Technical|Block \\(|Scaffolding Base)+");
         public static List<BlockProperties> getBlockTypes()
         {
             return availableBlockTypes.Count() <= 0
@@ -90,13 +67,17 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
             else return false;
         }
 
-        public static bool isBuildable(BlockProperties blockProperties)
+        private static Regex excludeNames = new Regex("(Technical|Block \\(|Scaffolding Base|Flowing )+");
+        private static readonly List<int> alternateBlockIds = new List<int>() { 63, 64 };
+        public static bool isBuildable(BlockProperties blockProperties, bool includeAlternates = false)
         {
-            if (!excludeNames.IsMatch(blockProperties.getName()))
+            if (!excludeNames.IsMatch(blockProperties.getName()) 
+                || (includeAlternates && alternateBlockIds.Contains(blockProperties.getID())))
             {
                 return true;
             }
-            else return false;
+            
+            return false;
         }
 
         private static Regex excludeUnbuildable = new Regex("(Sand|Crop)+");
@@ -130,11 +111,6 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         {
             return UnityEngine.Object.Instantiate(unityObject, position, rotation) as Transform;
         }
-
-
-
-
-
 
         public static void generateResourceConstantsAndWriteToFile()
         {

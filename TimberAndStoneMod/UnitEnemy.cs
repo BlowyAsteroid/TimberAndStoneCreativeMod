@@ -3,14 +3,13 @@ using System.Linq;
 
 namespace Plugin.BlowyAsteroid.TimberAndStoneMod
 {
-    public class UnitEnemy
+    public sealed class UnitEnemy
     {
         public const String GOBLIN_INFANTRY = "Goblin Infantry";
         public const String GOBLIN_ARCHER = "Goblin Archer";
         public const String SKELETON_INFANTRY = "Skeleton Infantry";
         public const String SKELETON_ARCHER = "Skeleton Archer";
         public const String NECROMANCER = "Necromancer";
-
         public const String HUMAN_INFANTRY = "Human Infantry";
         public const String HUMAN_ARCHER = "Human Archer";
 
@@ -19,7 +18,6 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         public static readonly UnitEnemy SkeletonInfantry = new UnitEnemy(SKELETON_INFANTRY);
         public static readonly UnitEnemy SkeletonArcher = new UnitEnemy(SKELETON_ARCHER);
         public static readonly UnitEnemy Necromancer = new UnitEnemy(NECROMANCER);
-
         public static readonly UnitEnemy HumanInfantry = new UnitEnemy(HUMAN_INFANTRY);
         public static readonly UnitEnemy HumanArcher = new UnitEnemy(HUMAN_ARCHER);
 

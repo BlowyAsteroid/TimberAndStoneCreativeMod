@@ -1,32 +1,45 @@
 ﻿using Plugin.BlowyAsteroid.TimberAndStoneMod.Services;
 using Plugin.BlowyAsteroid.TimberAndStoneMod.Components;
-using Timber_and_Stone.API;
 using Timber_and_Stone.API.Event;
-using Timber_and_Stone.Event;
 using System;
+using Timber_and_Stone.API;
+using Timber_and_Stone.Event;
+using UnityEngine;
 
 namespace Plugin.BlowyAsteroid.TimberAndStoneMod
 {
-    public class PluginMain : CSharpPlugin, IEventListener
+    public sealed class PluginMain : CSharpPlugin, IEventListener
    {
+        private readonly GUIManager guiManager = GUIManager.getInstance();
+        private readonly EventManager eventManager = EventManager.getInstance();
+        private readonly ModSettings modSettings = ModSettings.getInstance();
+
+        private void log(String message) { guiManager.AddTextLine(message); }
+        private void log<T>(T obj) { log(Convert.ToString(obj)); }
+
+        private Component addComponent(Type componentType)
+        {
+            return guiManager.gameObject.AddComponent(componentType);
+        }    
+
         public override void OnLoad()
         {
-            ModComponent.addComponent(typeof(GameSpeedComponent));
-            ModComponent.addComponent(typeof(CheatMenuComponent));
-            ModComponent.addComponent(typeof(CreativeMenuComponent));
-            ModComponent.addComponent(typeof(TimeComponent));
-            ModComponent.addComponent(typeof(FriendlyNpcComponent));
-        }        
+            addComponent(typeof(GameSpeedComponent));
+            addComponent(typeof(CheatMenuComponent));
+            addComponent(typeof(CreativeMenuComponent));
+            addComponent(typeof(TimeComponent));
+            addComponent(typeof(ModSettingsComponent));
+        }
 
         public override void OnEnable()
         {
-            EventManager.getInstance().Register(this);
+            eventManager.Register(this);
         }
-
+        
         [Timber_and_Stone.API.Event.EventHandler(Priority.Normal)]
         public void onInvasionNormal(EventInvasion evt)
         {
-            if (!ModSettings.isPreventInvasionsEnabled) return;
+            if (!modSettings.isPeacefulEnabled) return;
 
             evt.result = Result.Deny;
         }
@@ -36,18 +49,20 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         {
             if (evt.result != Result.Deny) return;
 
-            ModComponent.log(String.Format("A {0} invasion has been cancelled.", evt.invasion.getName()));
+            log(String.Format("A {0} invasion has been cancelled.", evt.invasion.getName()));
+        }
+
+        [Timber_and_Stone.API.Event.EventHandler(Priority.Normal)]
+        public void onMigrantAcceptNormal(EventMigrantAccept evt)
+        {
+            UnitPreference.setPreference(evt.unit, UnitPreference.WAIT_IN_HALL_WHILE_IDLE, true);
+            UnitPreference.setPreference(evt.unit, UnitPreference.TRAIN_UNDER_LEVEL_3, true);
         }
         
         [Timber_and_Stone.API.Event.EventHandler(Priority.Normal)]
         public void onEntityDeathNormal(EventEntityDeath evt)
         {
-            if (UnitPreference.isFriendlyNPC(evt.getUnit()))
-            {
-                evt.result = Result.Deny;
-            }
-
-            if (!ModSettings.isPreventDeathEnabled || !UnitService.isFriendly(evt.getUnit())) return;
+            if (!modSettings.isPeacefulEnabled || !UnitService.isFriendly(evt.getUnit())) return;
             
             evt.result = Result.Deny;
         }
@@ -55,11 +70,6 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         [Timber_and_Stone.API.Event.EventHandler(Priority.Monitor)]
         public void onEntityDeathMonitor(EventEntityDeath evt)
         {
-            if (!UnitService.isFriendly(evt.getUnit()))
-            {
-                FriendlyNpcComponent.updateNPCsNear(evt.getUnit());
-            }
-
             if (evt.result != Result.Deny) return;
 
             healUnit(evt.getUnit());

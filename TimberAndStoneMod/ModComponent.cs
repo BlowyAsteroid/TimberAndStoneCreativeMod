@@ -6,7 +6,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
     public abstract class ModComponent : MonoBehaviour
     {
         public static void log(String message) { guiManager.AddTextLine(message); }
-        public static void log<T>(T obj) { log(obj.ToString()); }
+        public static void log<T>(T obj) { log(Convert.ToString(obj)); }
 
         public static Component addComponent(Type componentType)
         {
@@ -40,6 +40,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
 
         protected readonly ModSettings modSettings = ModSettings.getInstance();
         protected readonly TimeManager timeManager = TimeManager.getInstance();
+        protected readonly WorldManager worldManager = WorldManager.getInstance();
         protected readonly ControlPlayer controlPlayer = guiManager.controllerObj.GetComponent<ControlPlayer>();
 
         private const float START_X = BUTTON_PADDING;
@@ -86,6 +87,21 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         protected bool updateMouseForUI(Rect container)
         {
             return container.Contains(mousePosition) ? guiManager.mouseInGUI = true : false;
+        }
+
+        protected Vector3 mouseWorldPosition = Vector3.zero;
+        protected bool isMouseInWorld(out Vector3 mousePosition)
+        {
+            try
+            {
+                mousePosition = controlPlayer.WorldPositionAtMouse();
+                return true;
+            }
+            catch (Exception e)
+            {
+                mousePosition = Vector3.zero;
+                return false;
+            }
         }
 
         protected bool Button(float x, float y, String text)

@@ -16,7 +16,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 
         public static bool isFriendly(ALivingEntity entity)
         {
-            return instance.getUnitAlignment(entity) == Alignment.Ally || instance.getUnitAlignment(entity) == Alignment.Neutral;
+            return instance.getUnitAlignment(entity) == Alignment.Ally && entity is HumanEntity;
         }
 
         private const int MAX_SPAWN_ATTEMPTS = 10;
@@ -84,7 +84,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 
         public APlayableEntity spawnMigrant()
         {
-            return designManager.edgeRoads.Count > 0 ? addHuman(UnitProfession.Random, getRandomRoadPosition()) : null;
+            return designManager.edgeRoads.Count > 0 ? addHuman(UnitHuman.Random, getRandomRoadPosition()) : null;
         }
 
         public IInvasion spawnInvasion()
@@ -92,74 +92,22 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
             return worldManager.SpawnInvasion();
         }
 
-        public APlayableEntity addHuman(UnitProfession profession, Vector3 position, bool autoAccept = false)
-        {            
+        public APlayableEntity addHuman(UnitHuman profession, Vector3 position, bool autoAccept = false)
+        {
             APlayableEntity entity = unitManager.AddHumanUnit(profession.Name.ToLower(), position, 
                 true, !autoAccept, UnityEngine.Random.Range(0, 3) == 1).GetComponent<APlayableEntity>();
 
             entity.inventory.Clear();
             equipmentService.equipPlayerUnit(entity);
 
-            return entity;
-        }
-
-        public ALivingEntity addFriendlyNPC(UnitFriendly profession, Vector3 position)
-        {
-            if (profession == null || position == null) return null;
-
-            ALivingEntity entity = null;
-            bool isArcher = false;
-
-            switch (profession.Name)
-            {
-                case UnitFriendly.HUMAN_INFANTRY:
-                    entity = createHumanUnit();                  
-                    entity.unitName = UnitFriendly.HUMAN_INFANTRY;
-                    break;
-
-                case UnitFriendly.HUMAN_ARCHER:
-                    entity = createHumanUnit(isArcher: true);
-                    entity.unitName = UnitFriendly.HUMAN_ARCHER;
-                    isArcher = true;
-                    break;
-
-                case UnitFriendly.GOBLIN_INFANTRY:
-                    entity = createGoblinUnit();
-                    equipmentService.equipGoblinWeapons(entity);
-                    break;
-
-                case UnitFriendly.GOBLIN_ARCHER:
-                    entity = createGoblinUnit();
-                    isArcher = true;
-                    break;
-
-                case UnitFriendly.SKELETON_INFANTRY:
-                    entity = createSkeletonUnit();
-                    equipmentService.equipSkeletonWeapons(entity);
-                    break;
-
-                case UnitFriendly.SKELETON_ARCHER:
-                    entity = createSkeletonUnit();
-                    isArcher = true;
-                    break;
-            }
-
-            UnitPreference.set(entity, UnitPreference.NPC_FRIENDLY, true);
-            UnitPreference.set(entity, UnitPreference.NPC_ARCHER, isArcher);
-
-            equipmentService.equipNPCWeapons(entity, isArcher);
-
-            entity.faction = worldManager.MigrantFaction;
-            entity.hitpoints = entity.maxHP;
-            entity.coordinate = getCoordinateAboveIfAir(Coordinate.FromWorld(position));
-            entity.interruptTask(new TaskWait(10));
-            entity.spottedTimer = 10f;
+            UnitPreference.setPreference(entity, UnitPreference.WAIT_IN_HALL_WHILE_IDLE, true);
+            UnitPreference.setPreference(entity, UnitPreference.TRAIN_UNDER_LEVEL_3, true);
 
             return entity;
         }
 
-        IBlock tempBlock;
-        private Coordinate getCoordinateAboveIfAir(Coordinate coordinate)
+        private IBlock tempBlock;
+        private Coordinate getCoordinateAboveIfNotAir(Coordinate coordinate)
         {
             if ((tempBlock = buildingSerive.getBlock(coordinate)).properties.getID() != 0)
             {
@@ -181,39 +129,23 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
             if(type == null || position == null) return null;
 
             ALivingEntity entity = null;
+            bool isArcher = type.Name.Contains("Archer");
 
             switch (type.Name)
             {
                 case UnitEnemy.HUMAN_INFANTRY:
-                    entity = createHumanUnit();
-                    equipmentService.equipHumanWeapons(entity);
-                    entity.name = UnitEnemy.HUMAN_INFANTRY;
-                    break;
-
                 case UnitEnemy.HUMAN_ARCHER:
-                    entity = createHumanUnit(isArcher: true);
-                    equipmentService.equipHumanWeapons(entity, true);
-                    entity.name = UnitEnemy.HUMAN_ARCHER;
+                    entity = createHumanUnit(isArcher);
                     break;
 
                 case UnitEnemy.GOBLIN_INFANTRY:
-                    entity = createGoblinUnit();
-                    equipmentService.equipGoblinWeapons(entity);
-                    break;
-
                 case UnitEnemy.GOBLIN_ARCHER:
-                    entity = createGoblinUnit();
-                    equipmentService.equipGoblinWeapons(entity, true);
+                    entity = createGoblinUnit(isArcher);
                     break;
 
                 case UnitEnemy.SKELETON_INFANTRY:
-                    entity = createSkeletonUnit();
-                    equipmentService.equipSkeletonWeapons(entity);
-                    break;
-
                 case UnitEnemy.SKELETON_ARCHER:
-                    entity = createSkeletonUnit();
-                    equipmentService.equipSkeletonWeapons(entity, true);
+                    entity = createSkeletonUnit(isArcher);
                     break;
 
                 case UnitEnemy.NECROMANCER:
@@ -221,55 +153,65 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
                     break;
             }
 
-            entity.coordinate = getCoordinateAboveIfAir(Coordinate.FromWorld(position));
+            entity.coordinate = getCoordinateAboveIfNotAir(Coordinate.FromWorld(position));
 
             return entity;
         }
 
-        private ALivingEntity createHumanUnit(bool isArcher = false)
+        private ALivingEntity createHumanUnit(bool isArcher = false) 
         {
-            HumanEntity unit = assetManager.InstantiateUnit<HumanEntity>();
-            
+            HumanEntity unit = createALivingEntity<HumanEntity>(worldManager.NeutralHostileFaction);
+            unit.addProfession(getMilitaryProfession(unit, isArcher));
+            unit.unitName = isArcher ? UnitEnemy.HUMAN_ARCHER : UnitEnemy.HUMAN_INFANTRY;
+
+            equipmentService.equipHumanWeapons(unit, isArcher);
+
+            return unit;
+        }
+
+        private ALivingEntity createGoblinUnit(bool isArcher = false)
+        {
+            GoblinEntity unit = createALivingEntity<GoblinEntity>(worldManager.GoblinFaction);
+            unit.addProfession(new Timber_and_Stone.Profession.Goblin.Infantry(unit, getRandomeExperience()));
+
+            equipmentService.equipGoblinWeapons(unit, isArcher);
+
+            return unit;
+        }
+
+        private ALivingEntity createSkeletonUnit(bool isArcher = false)
+        {
+            SkeletonEntity unit = createALivingEntity<SkeletonEntity>(worldManager.UndeadFaction);
+            unit.addProfession(new Timber_and_Stone.Profession.Undead.Infantry(unit, getRandomeExperience()));
+
+            equipmentService.equipSkeletonWeapons(unit, isArcher);
+
+            return unit;
+        }
+
+        private ALivingEntity createNecromancerUnit(bool isArcher = false)
+        {
+            NecromancerEntity unit = createALivingEntity<NecromancerEntity>(worldManager.UndeadFaction); 
+            unit.addProfession(new Timber_and_Stone.Profession.Undead.Infantry(unit, getRandomeExperience()));  
+
+            return unit;
+        }
+
+        private T createALivingEntity<T>(IFaction faction) where T : ALivingEntity
+        {
+            T unit = assetManager.InstantiateUnit<T>();
+            unit.faction = faction;
+
+            return unit;
+        }
+
+        private AProfession getMilitaryProfession(HumanEntity unit, bool isArcher)
+        {
             if (isArcher)
             {
-                unit.addProfession(new Timber_and_Stone.Profession.Human.Archer(unit, getRandomeExperience()));
+                return new Timber_and_Stone.Profession.Human.Archer(unit, getRandomeExperience());
             }
-            else unit.addProfession(new Timber_and_Stone.Profession.Human.Infantry(unit, getRandomeExperience()));
-
-            unit.unitName = "Human";
-            unit.faction = worldManager.NeutralHostileFaction;
-
-            return unit;
-        }
-
-        private ALivingEntity createGoblinUnit()
-        {
-            GoblinEntity unit = assetManager.InstantiateUnit<GoblinEntity>();
-            unit.addProfession(new Timber_and_Stone.Profession.Goblin.Infantry(unit, getRandomeExperience()));
-            
-            unit.faction = worldManager.GoblinFaction;           
-
-            return unit;
-        }
-
-        private ALivingEntity createSkeletonUnit()
-        {
-            SkeletonEntity unit = assetManager.InstantiateUnit<SkeletonEntity>();
-            unit.addProfession(new Timber_and_Stone.Profession.Undead.Infantry(unit, getRandomeExperience()));
-
-            unit.faction = worldManager.UndeadFaction;
-
-            return unit;
-        }
-
-        private ALivingEntity createNecromancerUnit()
-        {
-            NecromancerEntity unit = assetManager.InstantiateUnit<NecromancerEntity>();
-            unit.addProfession(new Timber_and_Stone.Profession.Undead.Infantry(unit, getRandomeExperience()));
-           
-            unit.faction = worldManager.UndeadFaction;
-
-            return unit;
+            else return new Timber_and_Stone.Profession.Human.Infantry(unit, getRandomeExperience());
         }
 
         private int getRandomeExperience()

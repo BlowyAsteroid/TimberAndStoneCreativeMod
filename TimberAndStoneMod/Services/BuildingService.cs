@@ -28,12 +28,15 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
         {
             return chunkManager.GetBlock(Coordinate.FromWorld(worldPosition));
         }
-        
+
+        private IBlock tempRemoveBlock;
         public bool removeBlock(Coordinate coordinate)
         {
-            if(coordinate.absolute.y > 0 && ModUtils.isBuildable(getBlock(coordinate).properties))
+            tempRemoveBlock = getBlock(coordinate);
+
+            if(coordinate.absolute.y > 0 && ModUtils.isBuildable(tempRemoveBlock.properties, true))
             {
-                return buildBlock(coordinate, BlockAir.BlockAir) != null;
+                return buildBlock(coordinate, BlockAir.BlockAir);
             }
             else return false;
         }        
@@ -53,20 +56,15 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
             else return ModUtils.createCoordinatesFromSelection(designManager.selectedBlocks);
         }
                 
-        private List<IBlock> builtBlockList = new List<IBlock>();
-        public List<IBlock> buildBlocks(List<Coordinate> coordinates, BlockProperties properties, IBlockData data = null)
+        public void buildBlocks(List<Coordinate> coordinates, BlockProperties properties, IBlockData data = null)
         {
-            builtBlockList.Clear();
-
             foreach (Coordinate coordinate in coordinates)
             {
-                builtBlockList.Add(buildBlock(coordinate, properties, data));
+                buildBlock(coordinate, properties, data);
             }
-
-            return builtBlockList.Where(b => b != null).ToList();
         }
         
-        public IBlock buildBlock(Coordinate coordinate, BlockProperties properties, IBlockData data = null)
+        public bool buildBlock(Coordinate coordinate, BlockProperties properties, IBlockData data = null)
         {
             if (chunkManager.isCoordInMap(coordinate))
             {
@@ -74,143 +72,182 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
                 {
                     designManager.ReValidateBlock(coordinate);
 
-                    return chunkManager.GetBlock(coordinate);
+                    return true;
                 }
             }
 
-            return null;
+            return false;
         }
 
         public bool setBlock(Coordinate coordinate, BlockProperties properties, IBlockData data = null)
         {
             return data != null ? chunkManager.SetBlock(coordinate, properties, data) : chunkManager.SetBlock(coordinate, properties);
         }
-
-
-
-        private IBlock tempSmoothBlock, tempCompareBlock;
-        private IBlockData tempBlockData;
-        private BlockProperties tempBlockProperties;
-        private int variationIndex = 0;
+        
         public void smoothBlocks(List<Coordinate> coordinates)
         {
+            IBlock tempSmoothBlock, tempCompareBlock;
+            IBlockData tempBlockData;
+            BlockProperties tempBlockProperties;
+            int variationIndex = -1;
+
             foreach(Coordinate coordinate in coordinates)
             {
                 if (!chunkManager.isCoordInMap(coordinate)) continue;
 
                 tempSmoothBlock = getBlock(coordinate);
-                variationIndex = -1;
 
-                if (tempSmoothBlock.properties.GetType() != typeof(BlockAir) || !isValidCompareBlock(tempSmoothBlock.relative(0, -1, 0))) continue;
+                if (!isValidAirBlock(tempSmoothBlock) || !isValidCompareBlock(tempSmoothBlock.relative(0, -1, 0))) continue;
 
+                variationIndex = getVariationIndexForSmoothing(tempSmoothBlock, out tempCompareBlock);
+               
+                if (tempCompareBlock == null || variationIndex < 0) continue;
 
-                if (isValidInnerCornerBlock(tempSmoothBlock, 1, 1))//Front-Left-Corner
-                {
-                    variationIndex = 11;
-                }
-                else if (isValidInnerCornerBlock(tempSmoothBlock, 1, -1))//Back-Left-Corner
-                {
-                    variationIndex = 2;
-                }
-                else if (isValidInnerCornerBlock(tempSmoothBlock, -1, -1))//Front-Right-Corner
-                {
-                    variationIndex = 5;
-                }
-                else if (isValidInnerCornerBlock(tempSmoothBlock, -1, 1))//Back-Right-Corner
-                {
-                    variationIndex = 8;
-                }
+                tempBlockProperties = getSlopeBlockPropertiesFromCubeBlock(tempCompareBlock.properties);
 
+                if (tempBlockProperties.getVariations() == null) continue;
 
-                else if (isValidCompareBlock(tempSmoothBlock.relative(-1, 0, 0)))//Left
-                {
-                    variationIndex = 0;
-                }
-                else if (isValidCompareBlock(tempSmoothBlock.relative(1, 0, 0)))//Right
-                {
-                    variationIndex = 6;
-                }
-                else if (isValidCompareBlock(tempSmoothBlock.relative(0, 0, -1)))//Front
-                {
-                    variationIndex = 9;
-                }
-                else if (isValidCompareBlock(tempSmoothBlock.relative(0, 0, 1)))//Back
-                {
-                    variationIndex = 3;
-                }
-
-
-                else if (isValidOuterCornerBlock(tempSmoothBlock, -1, 1))//Front-Left-Corner
-                {
-                    variationIndex = 1;
-                }
-                else if (isValidOuterCornerBlock(tempSmoothBlock, -1, -1))//Back-Left-Corner
-                {
-                    variationIndex = 10;
-                }
-                else if (isValidOuterCornerBlock(tempSmoothBlock, 1, 1))//Front-Right-Corner
-                {
-                    variationIndex = 4;
-                }
-                else if (isValidOuterCornerBlock(tempSmoothBlock, 1, -1))//Back-Right-Corner
-                {
-                    variationIndex = 7;
-                }
-
-                else continue;
-
-
-                tempBlockProperties = tempCompareBlock.properties;
-
-
-                switch (tempBlockProperties.getID())
-                {
-                    case 1:
-                    case 2:
-                    case 10:
-                    case 64:
-                        tempBlockProperties = BlockProperties.SlopeGrass;
-                        tempBlockData = tempBlockProperties.getVariations()[variationIndex][0];
-                        break;
-
-                    case 4:
-                        tempBlockProperties = BlockProperties.SlopeDirt;
-                        tempBlockData = tempBlockProperties.getVariations()[variationIndex][0];
-                        break;
-
-                    case 6:
-                        tempBlockProperties = BlockProperties.SlopeSand;
-                        tempBlockData = tempBlockProperties.getVariations()[variationIndex][0];
-                        break;
-
-                    case 8:
-                    case 66: 
-                    case 67: 
-                    case 68: 
-                    case 69: 
-                    case 70: 
-                    case 71: 
-                    case 72:
-                        tempBlockProperties = BlockProperties.SlopeStone;
-                        tempBlockData = tempBlockProperties.getVariations()[variationIndex][0];
-                        break;
-
-                    default:
-                        continue;
-                }
-
+                tempBlockData = tempBlockProperties.getVariations()[variationIndex][0];
+                
                 buildBlock(coordinate, tempBlockProperties, tempBlockData);
             }            
         }
 
+        private int getVariationIndexForSmoothing(IBlock block, out IBlock compareBlock)
+        {
+            int variationIndex = -1;
+
+            if (isValidInnerCornerBlock(block, -1, -1))//Front-Left-Corner
+            {
+                compareBlock = block.relative(-1, 0, -1);
+                variationIndex = 11;
+            }
+            else if (isValidInnerCornerBlock(block, -1, 1))//Back-Left-Corner
+            {
+                compareBlock = block.relative(-1, 0, 1);
+                variationIndex = 2;
+            }
+            else if (isValidInnerCornerBlock(block, 1, 1))//Back-Right-Corner
+            {
+                compareBlock = block.relative(1, 0, 1);
+                variationIndex = 5;
+            }
+            else if (isValidInnerCornerBlock(block, 1, -1))//Front-Right-Corner
+            {
+                compareBlock = block.relative(1, 0, -1);
+                variationIndex = 8;
+            }
+
+
+            else if (isValidCompareBlock(block.relative(-1, 0, 0)))//Left
+            {
+                compareBlock = block.relative(-1, 0, 0);
+                variationIndex = 0;
+            }
+            else if (isValidCompareBlock(block.relative(1, 0, 0)))//Right
+            {
+                compareBlock = block.relative(1, 0, 0);
+                variationIndex = 6;
+            }
+            else if (isValidCompareBlock(block.relative(0, 0, -1)))//Front
+            {
+                compareBlock = block.relative(0, 0, -1);
+                variationIndex = 9;
+            }
+            else if (isValidCompareBlock(block.relative(0, 0, 1)))//Back
+            {
+                compareBlock = block.relative(0, 0, 1);
+                variationIndex = 3;
+            }
+
+
+            else if (isValidOuterCornerBlock(block, -1, 1))//Front-Left-Corner
+            {
+                compareBlock = block.relative(-1, 0, 1);
+                variationIndex = 1;
+            }
+            else if (isValidOuterCornerBlock(block, -1, -1))//Back-Left-Corner
+            {
+                compareBlock = block.relative(-1, 0, -1);
+                variationIndex = 10;
+            }
+            else if (isValidOuterCornerBlock(block, 1, 1))//Front-Right-Corner
+            {
+                compareBlock = block.relative(1, 0, 1);
+                variationIndex = 4;
+            }
+            else if (isValidOuterCornerBlock(block, 1, -1))//Back-Right-Corner
+            {
+                compareBlock = block.relative(1, 0, -1);
+                variationIndex = 7;
+            }
+
+
+            else compareBlock = null;
+
+            return variationIndex;
+        }
+
+        private static readonly int[] GRASS_BLOCKS = new int[] { 1, 2, 10, 64, 86 };
+        private static readonly int[] STONE_BLOCKS = new int[] { 8, 66, 67, 68, 69, 70, 71, 72, 85 };
+        private static readonly int[] DIRT_BLOCKS = new int[] { 4, 40, 87 };
+        private static readonly int[] SAND_BLOCKS = new int[] { 6, 88 };
+        private BlockProperties getSlopeBlockPropertiesFromCubeBlock(BlockProperties blockProperties)
+        {
+            BlockProperties tempBlockProperties = blockProperties;
+
+            if (GRASS_BLOCKS.Contains(blockProperties.getID()))
+            {
+                tempBlockProperties = BlockProperties.SlopeGrass;
+            }
+            else if (STONE_BLOCKS.Contains(blockProperties.getID()))
+            {
+                tempBlockProperties = BlockProperties.SlopeStone;
+            }
+            else if (DIRT_BLOCKS.Contains(blockProperties.getID()))
+            {
+                tempBlockProperties = BlockProperties.SlopeDirt;
+            }
+            else if (SAND_BLOCKS.Contains(blockProperties.getID()))
+            {
+                tempBlockProperties = BlockProperties.SlopeSand;
+            }
+
+            return tempBlockProperties;
+        }
+
+        private BlockProperties getCubeBlockPropertiesFromSlopeBlock(BlockProperties blockProperties)
+        {
+            BlockProperties tempBlockProperties = blockProperties;
+
+            if (GRASS_BLOCKS.Contains(blockProperties.getID()))
+            {
+                tempBlockProperties = BlockProperties.BlockGrass;
+            }
+            else if (STONE_BLOCKS.Contains(blockProperties.getID()))
+            {
+                tempBlockProperties = BlockProperties.BlockStone;
+            }
+            else if (DIRT_BLOCKS.Contains(blockProperties.getID()))
+            {
+                tempBlockProperties = BlockProperties.BlockDirt;
+            }
+            else if (SAND_BLOCKS.Contains(blockProperties.getID()))
+            {
+                tempBlockProperties = BlockProperties.BlockSand;
+            }
+
+            return tempBlockProperties;
+        }
+
         private bool isValidCompareBlock(IBlock block, bool includeTransparent = false)
         {
-            return (tempCompareBlock = block).properties.getID() != 0 && includeTransparent ? true : !block.properties.isTransparent();
+            return !isValidAirBlock(block) && (includeTransparent ? true : !block.properties.isTransparent());
         }
 
         private bool isValidAirBlock(IBlock block)
         {
-            return block.properties.getID() == 0;
+            return block != null && block.properties.GetType() == typeof(BlockAir);
         }
 
         private bool isValidOuterCornerBlock(IBlock block, int x, int z)
@@ -222,21 +259,17 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 
         private bool isValidInnerCornerBlock(IBlock block, int x, int z)
         {
-            return isValidCompareBlock(block.relative(-x, 0, 0))
-                && isValidCompareBlock(block.relative(0, 0, -z))
-                && (block.relative(x, 0, 0).properties.isTransparent() || isValidAirBlock(block.relative(x, 0, 0)))
-                && (block.relative(0, 0, z).properties.isTransparent() || isValidAirBlock(block.relative(0, 0, z)));
-        }
-
-
-
-        private IBlock tempReplaceBlock;
-        private IBlockData tempReplaceBlockData;
-        private BlockProperties tempReplaceBlockProperties;
-        private List<IBlock> replacedBlocks = new List<IBlock>();
-        public List<IBlock> replaceBlocks(List<Coordinate> coordinates, BlockProperties properties, IBlockData data = null)
+            return isValidCompareBlock(block.relative(x, 0, 0))
+                && isValidCompareBlock(block.relative(0, 0, z))
+                && (block.relative(-x, 0, 0).properties.isTransparent() || isValidAirBlock(block.relative(-x, 0, 0)))
+                && (block.relative(0, 0, -z).properties.isTransparent() || isValidAirBlock(block.relative(0, 0, -z)));
+        }        
+        
+        public void replaceBlocks(List<Coordinate> coordinates, BlockProperties properties, IBlockData data = null)
         {
-            replacedBlocks.Clear();
+            IBlock tempReplaceBlock;
+            IBlockData tempReplaceBlockData;
+            BlockProperties tempReplaceBlockProperties;
 
             foreach (Coordinate coordinate in coordinates)
             {
@@ -244,81 +277,30 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 
                 tempReplaceBlock = getBlock(coordinate);
 
-                if (!ModUtils.isBuildable(tempReplaceBlock.properties)) continue;
+                if (!ModUtils.isBuildable(tempReplaceBlock.properties, true)) continue;
 
                 if (tempReplaceBlock.properties.getVariations() != null)
                 {
-                    switch (properties.getID())
-                    {
-                        case 1:
-                            tempReplaceBlockProperties = BlockProperties.SlopeGrass;
-                            break;
-
-                        case 4:
-                            tempReplaceBlockProperties = BlockProperties.SlopeDirt;
-                            break;
-
-                        case 6:
-                            tempReplaceBlockProperties = BlockProperties.SlopeSand;
-                            break;
-
-                        case 8:
-                            tempReplaceBlockProperties = BlockProperties.SlopeStone;
-                            break;
-
-                        default:
-                            tempReplaceBlockProperties = properties;
-                            break;
-                    }
-
+                    tempReplaceBlockProperties = getSlopeBlockPropertiesFromCubeBlock(properties);
                     tempReplaceBlockData = tempReplaceBlock.properties.getVariations()[ModUtils.getVariationIndexFromBlock(tempReplaceBlock)][0];
+                }
+                else if (properties.getVariations() != null)
+                {
+                    tempReplaceBlockProperties = getCubeBlockPropertiesFromSlopeBlock(properties);
+                    tempReplaceBlockData = properties.getVariations()[ModUtils.getVariationIndexFromBlock(tempReplaceBlock)][0];
                 }
                 else
                 {
-                    if (properties.getVariations() != null)
-                    {
-                        switch (properties.getID())
-                        {
-                            case 86:
-                                tempReplaceBlockProperties = BlockProperties.BlockGrass;
-                                break;
-
-                            case 87:
-                                tempReplaceBlockProperties = BlockProperties.BlockDirt;
-                                break;
-
-                            case 88:
-                                tempReplaceBlockProperties = BlockProperties.BlockSand;
-                                break;
-
-                            case 85:
-                                tempReplaceBlockProperties = BlockProperties.BlockStone;
-                                break;
-
-                            default:
-                                tempReplaceBlockProperties = tempReplaceBlock.properties;
-                                break;
-                        }
-
-                        tempReplaceBlockData = properties.getVariations()[ModUtils.getVariationIndexFromBlock(tempReplaceBlock)][0];
-                    }
-                    else
-                    {
-                        tempReplaceBlockProperties = properties;
-                        tempReplaceBlockData = data;
-                    }
+                    tempReplaceBlockProperties = properties;
+                    tempReplaceBlockData = data;
                 }
 
-                replacedBlocks.Add(buildBlock(coordinate, tempReplaceBlockProperties, tempReplaceBlockData));
+                buildBlock(coordinate, tempReplaceBlockProperties, tempReplaceBlockData);
 
                 tempReplaceBlockProperties = null;
                 tempReplaceBlockData = null;                
             }
-
-            return replacedBlocks;
         }
-
-
                 
         public List<TreeFlora> getSelectedTrees()
         {
@@ -347,7 +329,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 
         public bool removeTree(TreeFlora tree)
         {
-            if (isValidCompareBlock(getBlock(Coordinate.FromChunkBlock(tree.chunkPos, tree.blockPos))))
+            if (isValidCompareBlock(getBlock(Coordinate.FromChunkBlock(tree.chunkPos, tree.blockPos)), true))
             {
                 terrainManager.RemoveTree(tree, 1);
             }
@@ -358,7 +340,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 
         public bool removeShrub(Shrub shrub)
         {
-            if (isValidCompareBlock(getBlock(Coordinate.FromChunkBlock(shrub.chunkPos, shrub.blockPos))))
+            if (isValidCompareBlock(getBlock(Coordinate.FromChunkBlock(shrub.chunkPos, shrub.blockPos)), true))
             {
                 terrainManager.RemoveShrub(shrub, 1);
             }
@@ -367,48 +349,40 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
             return true;
         }
 
-        private TreeFlora tempAddTree;
-        private Transform tempTreeTransform;
+        private Transform tempFloraTransform;
+        private IBlock tempFloraBlock;
         public void addTree(Coordinate coordinate)
         {
-            if (!isValidAirBlock(tempShrubBlock = getBlock(coordinate)))
+            if (!isValidAirBlock(tempFloraBlock = getBlock(coordinate)))
             {
-                coordinate = tempShrubBlock.relative(0, 1, 0).coordinate;
+                coordinate = tempFloraBlock.relative(0, 1, 0).coordinate;
             }
 
-            tempTreeTransform = ModUtils.createTransform(terrainManager.treeObject);
-            tempTreeTransform.transform.parent = getChunkData(coordinate).chunkObj.transform;
-            tempTreeTransform.position = getSlightlyOffsetY(coordinate.world);
+            tempFloraTransform = ModUtils.createTransform(terrainManager.treeObject);
+            tempFloraTransform.transform.parent = getChunkData(coordinate).chunkObj.transform;
+            tempFloraTransform.position = getSlightlyOffsetY(coordinate.world);
 
-            tempAddTree = tempTreeTransform.GetComponent<TreeFlora>();
+            TreeFlora tempAddTree = tempFloraTransform.GetComponent<TreeFlora>();
             tempAddTree.blockPos = getSlightlyOffsetY(coordinate.block);
             tempAddTree.chunkPos = getSlightlyOffsetY(coordinate.chunk);
             tempAddTree.health = 100f;
 
             terrainManager.AddTree(tempAddTree);
             tempAddTree.Init();
-        }
+        }       
 
-        private Vector3 getSlightlyOffsetY(Vector3 position)
-        {
-            return new Vector3(position.x, position.y - chunkManager.voxelSize / 2, position.z);
-        }
-
-        private Shrub tempAddShrub;
-        private Transform tempShrubTransform;
-        private IBlock tempShrubBlock;
         public void addShrub(Coordinate coordinate)
         {
-            if (!isValidAirBlock(tempShrubBlock = getBlock(coordinate)))
+            if (!isValidAirBlock(tempFloraBlock = getBlock(coordinate)))
             {
-                coordinate = tempShrubBlock.relative(0, 1, 0).coordinate;
+                coordinate = tempFloraBlock.relative(0, 1, 0).coordinate;
             }
 
-            tempShrubTransform = ModUtils.createTransform(terrainManager.shrubObject);
-            tempShrubTransform.transform.parent = getChunkData(coordinate).chunkObj.transform;
-            tempShrubTransform.position = getSlightlyOffsetY(coordinate.world);
+            tempFloraTransform = ModUtils.createTransform(terrainManager.shrubObject);
+            tempFloraTransform.transform.parent = getChunkData(coordinate).chunkObj.transform;
+            tempFloraTransform.position = getSlightlyOffsetY(coordinate.world);
 
-            tempAddShrub = tempShrubTransform.GetComponent<Shrub>();
+            Shrub tempAddShrub = tempFloraTransform.GetComponent<Shrub>();
             tempAddShrub.blockPos = getSlightlyOffsetY(coordinate.block);
             tempAddShrub.chunkPos = getSlightlyOffsetY(coordinate.chunk);
             tempAddShrub.health = 100f;
@@ -423,7 +397,11 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
             return chunkManager.chunkArray[coordinate.chunk.x, coordinate.chunk.y, coordinate.chunk.z];
         }
 
-        private static readonly int[] EMPTY_INT_ARRAY = new int[255];
+        private Vector3 getSlightlyOffsetY(Vector3 position)
+        {
+            return new Vector3(position.x, position.y - chunkManager.voxelSize / 2, position.z);
+        }
+
         public void buildStructure(ref BuildStructure structure)
         {
             structure.isBuilt = true;
@@ -431,9 +409,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
             structure.health = 100f;
             structure.RenderTextured();
             structure.HideAccessPoints();
-            structure.AddBlocks(98);
-            structure.resourceTypes = EMPTY_INT_ARRAY;
-            structure.resourceAmounts = EMPTY_INT_ARRAY;
+            structure.AddBlocks(98);            
         }
     }
 }

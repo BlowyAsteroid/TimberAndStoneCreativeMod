@@ -5,36 +5,36 @@ using Timber_and_Stone;
 
 namespace Plugin.BlowyAsteroid.TimberAndStoneMod
 {
-    public class UnitProfession
+    public sealed class UnitHuman
     {
         public const int MAX_LEVEL = 20;
 
-        public static readonly UnitProfession Archer = new UnitProfession("Archer");
-        public static readonly UnitProfession Blacksmith = new UnitProfession("Blacksmith");
-        public static readonly UnitProfession Builder = new UnitProfession("Builder");
-        public static readonly UnitProfession Carpenter = new UnitProfession("Carpenter");
-        public static readonly UnitProfession Engineer = new UnitProfession("Engineer");
-        public static readonly UnitProfession Farmer = new UnitProfession("Farmer");
-        public static readonly UnitProfession Fisherman = new UnitProfession("Fisherman");
-        public static readonly UnitProfession Forager = new UnitProfession("Forager");
-        public static readonly UnitProfession Herder = new UnitProfession("Herder");
-        public static readonly UnitProfession Infantry = new UnitProfession("Infantry");
-        public static readonly UnitProfession Miner = new UnitProfession("Miner");
-        public static readonly UnitProfession StoneMason = new UnitProfession("Stone Mason");
-        public static readonly UnitProfession Tailor = new UnitProfession("Tailor");
-        public static readonly UnitProfession Trader = new UnitProfession("Trader");
-        public static readonly UnitProfession WoodChopper = new UnitProfession("Wood Chopper");
+        public static readonly UnitHuman Archer = new UnitHuman("Archer");
+        public static readonly UnitHuman Blacksmith = new UnitHuman("Blacksmith");
+        public static readonly UnitHuman Builder = new UnitHuman("Builder");
+        public static readonly UnitHuman Carpenter = new UnitHuman("Carpenter");
+        public static readonly UnitHuman Engineer = new UnitHuman("Engineer");
+        public static readonly UnitHuman Farmer = new UnitHuman("Farmer");
+        public static readonly UnitHuman Fisherman = new UnitHuman("Fisherman");
+        public static readonly UnitHuman Forager = new UnitHuman("Forager");
+        public static readonly UnitHuman Herder = new UnitHuman("Herder");
+        public static readonly UnitHuman Infantry = new UnitHuman("Infantry");
+        public static readonly UnitHuman Miner = new UnitHuman("Miner");
+        public static readonly UnitHuman StoneMason = new UnitHuman("Stone Mason");
+        public static readonly UnitHuman Tailor = new UnitHuman("Tailor");
+        public static readonly UnitHuman Trader = new UnitHuman("Trader");
+        public static readonly UnitHuman WoodChopper = new UnitHuman("Wood Chopper");
 
-        public static readonly UnitProfession[] List = new UnitProfession[]{
+        public static readonly UnitHuman[] List = new UnitHuman[]{
             Archer, Blacksmith, Builder, Carpenter, Engineer, Farmer, Fisherman, 
             Forager, Herder, Infantry, Miner, StoneMason, Tailor, Trader, WoodChopper
         };
 
-        public static UnitProfession Random { get { return List[UnityEngine.Random.Range(0, List.Count())]; } }  
+        public static UnitHuman Random { get { return List[UnityEngine.Random.Range(0, List.Count())]; } }  
 
         private String name;
 
-        private UnitProfession(String name)
+        private UnitHuman(String name)
         {
             this.name = name;
         }

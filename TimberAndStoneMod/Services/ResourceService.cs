@@ -25,10 +25,6 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
         private const float DEFAULT_RESOURCE_FILL_PERCENTAGE = 1.0f;
         private const float MINIMUM_RESOURCE_MASS = 0.01f;
 
-        private const int LAST_RAW_MATERIAL_INDEX = 37;
-        private const int LAST_PROCESSED_MATERIAL_INDEX = 56;
-        private const int COIN_MATERIAL_INDEX = 55;
-
         private Dictionary<Resource, float> originalMasses = new Dictionary<Resource, float>();
 
         private ResourceManager resourceManager = ResourceManager.getInstance();
@@ -43,17 +39,17 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 
         public List<Resource> getRawMaterials()
         {
-            return getResources().Where(r => r.index <= LAST_RAW_MATERIAL_INDEX).ToList();
+            return getAllResources().Where(r => ResourceId.RawMaterialList.Contains(r.index)).ToList();
         }
 
-        public List<Resource> getMaterials()
+        public List<Resource> getProcessedMaterials()
         {
-            return getResources().Where(r => r.index <= LAST_PROCESSED_MATERIAL_INDEX).ToList();
+            return getAllResources().Where(r => ResourceId.ProcessedMaterialList.Contains(r.index)).ToList();
         }
 
-        public List<Resource> getResources()
+        public List<Resource> getAllResources()
         {
-            return resourceManager.resources.Where(r => r != null).ToList();
+            return resourceManager.resources.Where(r => r != null && ResourceId.AllPlayerResources.Contains(r.index)).ToList();
         } 
 
         public List<BuildStructure> getStorageStructures()
@@ -87,7 +83,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 
         public int getStorageItemCount(StorageType type)
         {
-            return getResources().Where(r => r.storageIndex == type.index).Count();
+            return getAllResources().Where(r => r.storageIndex == type.index).Count();
         }
 
         public void setAllStorageCaps(float amount)
