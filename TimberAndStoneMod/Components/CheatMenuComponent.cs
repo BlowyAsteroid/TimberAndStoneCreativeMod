@@ -38,7 +38,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 
         public void Start()
         {
-            setUpdatesPerSecond(5);
+            setUpdatesPerSecond(1);
         }
 
         private ResourceService resourceService = ResourceService.getInstance();
@@ -46,12 +46,12 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         
         public void Update()
         {
-            if (!isTimeToUpdate(DateTime.Now.Ticks)) return;
-
             if (isComponentVisible)
             {
                 translateMouse();
             }
+
+            if (!isTimeToUpdate(DateTime.Now.Ticks)) return;
 
             if (modSettings.hasSettings && !isSettingsLoaded)
             {

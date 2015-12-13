@@ -49,7 +49,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 
         public List<Resource> getAllResources()
         {
-            return resourceManager.resources.Where(r => r != null && ResourceId.AllPlayerResources.Contains(r.index)).ToList();
+            return resourceManager.resources.Where(r => r != null && ResourceId.AllPlayerResourcesList.Contains(r.index)).ToList();
         } 
 
         public List<BuildStructure> getStorageStructures()

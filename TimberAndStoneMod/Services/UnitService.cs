@@ -68,7 +68,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
             if (designManager.edgeRoads.Count < 1) return false;
 
             int attempts = 0;
-            while (attempts < MAX_SPAWN_ATTEMPTS && unitManager.SpawnMerchant(Vector3.zero) != null) attempts++;
+            while (attempts < MAX_SPAWN_ATTEMPTS && unitManager.SpawnMerchant(Vector3.zero) == null) attempts++;
 
             return attempts < MAX_SPAWN_ATTEMPTS;
         }
