@@ -19,6 +19,14 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
             return instance.getUnitAlignment(entity) == Alignment.Ally && entity is HumanEntity;
         }
 
+        public static void reviveUnit(APlayableEntity entity, IFaction faction)
+        {
+            entity.hitpoints = entity.maxHP;
+            entity.hunger = 0f;
+            entity.faction = faction;
+            entity.interruptTask(new TaskWander(entity));
+        }
+
         private const int MAX_SPAWN_ATTEMPTS = 10;
         private const int MAX_ANIMAL_COUNT = 250;
 

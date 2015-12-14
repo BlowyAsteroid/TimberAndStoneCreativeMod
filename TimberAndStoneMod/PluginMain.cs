@@ -62,7 +62,11 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         [Timber_and_Stone.API.Event.EventHandler(Priority.Normal)]
         public void onEntityDeathNormal(EventEntityDeath evt)
         {
-            if (!modSettings.isPeacefulEnabled || !UnitService.isFriendly(evt.getUnit())) return;
+            if (!UnitService.isFriendly(evt.getUnit())) return;
+
+            UnitPreference.setPreference(evt.getUnit(), UnitPreference.IS_PLAYER_UNIT, true);
+
+            if (!modSettings.isPeacefulEnabled) return;
             
             evt.result = Result.Deny;
         }

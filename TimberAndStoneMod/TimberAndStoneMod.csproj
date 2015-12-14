@@ -48,6 +48,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Components\ModSettingsComponent.cs" />
+    <Compile Include="IModCollectionItem.cs" />
+    <Compile Include="PlayerUnitSettings.cs" />
     <Compile Include="ResourceId.cs" />
     <Compile Include="UnitEnemy.cs" />
     <Compile Include="ModUtils.cs" />

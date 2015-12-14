@@ -52,18 +52,14 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         private bool isSelecting { get { return controlPlayer.selecting; } }
         private bool isDesigning { get { return controlPlayer.designing; } }
         private bool isSelectingUnitType { get { return isSelectingHumanType || isSelectingEnemyType; } }
+        private bool isPlacingUnitType { get { return isPlacingHuman || isPlacingHuman; } }
 
         private bool isScrolling { get { return Input.GetAxis(Mouse.SCROLL_WHEEL) != 0; } }
 
         private BlockProperties selectedBlockType;
         private IBlockData selectedBlockData;
         private List<BlockProperties> availableBlockTypes;
-
-        private ALivingEntity selectedEntity;
-        private MonoBehaviour selectedObject { get { return worldManager.PlayerFaction.selectedObject; } }
-        private bool isEntitySelected { get { return selectedEntity != null; } }
-        private bool doRemoveEntity = false;
-
+        
         private bool doCreateBlocks = false;
         private bool doReplaceBlocks = false;
         private bool doRemoveBlocks = false;
@@ -88,7 +84,17 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         private bool isSelectingEnemyType = false;
         private bool isPlacingEnemy = false;
         private bool doPlaceEnemy = false;
-        
+
+        private MonoBehaviour selectedObject { get { return worldManager.PlayerFaction.selectedObject; } }
+        private bool isObjectSelected { get { return selectedObject != null; } }
+        private bool isLivingEntitySelected { get { return isObjectSelected && selectedObject is ALivingEntity; } }
+        private ALivingEntity selectedEntity { get { return isLivingEntitySelected ? selectedObject as ALivingEntity : null; } }        
+        private bool isPlayableUnitSelected { get { return isObjectSelected && selectedObject is APlayableEntity; } }
+        private APlayableEntity selectedUnit { get { return isPlayableUnitSelected ? selectedObject as APlayableEntity : null; } }
+        private int playerFactionUnitCount { get { return worldManager.PlayerFaction.units.Where(u => u.isAlive()).Count(); } }
+        private bool doRemoveEntity = false;
+        private bool doSetPlayerUnitSettings = false;
+
         public void Start()
         {
             setUpdatesPerSecond(5);
@@ -103,6 +109,15 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
             if (isComponentVisible)
             {
                 translateMouse();
+            }
+
+            if (isLivingEntitySelected && (isDesigning || isSelecting || isSelectingUnitType || isPlacingUnitType))
+            {
+                controlPlayer.CancelDesigning(true);
+                isSelectingEnemyType = false;
+                isSelectingHumanType = false;
+                isPlacingHuman = false;
+                isPlacingEnemy = false;
             }
 
             if ((Input.GetMouseButtonUp(Mouse.RIGHT) && !controlPlayer.cameraRotate)
@@ -134,11 +149,6 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 else if (isSelectingEnemyType)
                 {
                     isSelectingEnemyType = false;
-                }
-
-                if (isEntitySelected)
-                {
-                    selectedEntity = null;
                 }
 
                 isMouseInGUIOverride = false;
@@ -227,17 +237,6 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                             log("Variation: " + controlPlayer.buildingVariationIndex);
                             log("Name: " + tempBlock.properties.getName());
                         }
-                    }
-                    else if (Input.GetMouseButtonUp(Mouse.LEFT) && !isMouseInGui)
-                    {
-                        if (selectedObject != null)
-                        {
-                            if (selectedEntity == null || selectedEntity != selectedObject.GetComponent<ALivingEntity>())
-                            {
-                                selectedEntity = selectedObject.GetComponent<ALivingEntity>();
-                            }
-                        }
-                        else selectedEntity = null;
                     }
                 }
                 else if (isSelecting)
@@ -347,7 +346,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 
                         selectedBlockData = textureData;
                     }
-                }
+                }                
 
                 if (doBuildStructures)
                 {
@@ -415,14 +414,22 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 {
                     doRemoveEntity = false;
 
-                    if (UnitService.isFriendly(selectedEntity) && worldManager.PlayerFaction.units.Count() <= 1)
+                    if (UnitService.isFriendly(selectedEntity) && playerFactionUnitCount <= 1)
                     {
                         log("Unable to remove player unit. There must be at least one unit in the player faction.");
                         return;
                     }
                     //Remove Entity
                     selectedEntity.Destroy();
-                    selectedEntity = null;
+                }
+                else if (doSetPlayerUnitSettings)
+                {
+                    doSetPlayerUnitSettings = false;
+
+                    if (isPlayableUnitSelected)
+                    {
+                        setPlayerUnitSettings(playerUnitTraitSettings, selectedUnit, UnitTrait.List);
+                    }
                 }
                 else if (doSaveGame)
                 {
@@ -434,6 +441,10 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                         worldManager.SaveGame();
                     }
                     else log("Unable to save. Press play until save button is visible then try again.");
+                }
+                else if (isPlayableUnitSelected)
+                {
+                    updatePlayerUnitSettings(ref playerUnitTraitSettings, selectedUnit, UnitTrait.List);
                 }
             }
         }        
@@ -449,14 +460,14 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 }
             }
         }
-        
+
         private void drawBuildWindow(int id)
         {
             Window(parentContainer, PARENT_CONTAINER_TITLE);
 
             CheckBox("Creative", ref modSettings.isCreativeEnabled);
 
-            if (isMouseHover || isDesigning || isSelectingUnitType || isEntitySelected)
+            if (isMouseHover || isDesigning || isSelectingUnitType || isLivingEntitySelected)
             {
                 if (modSettings.isCreativeEnabled)
                 {
@@ -491,6 +502,72 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                             Label(controlPlayer.buildingMaterial.getName());
                         }
                     }
+                    else if (isChopping)
+                    {
+                        Label(getKeyString(PRIMARY_KEY) + " Place Tree");
+                        Label(getKeyString(PICK_BLOCK_KEY) + " Place Shrub");
+                        Button("Remove All Trees", ref doRemoveAllTrees);
+                    }
+                    else if (isLivingEntitySelected)
+                    {
+                        Label(selectedEntity.unitName);
+
+                        if (isPlayableUnitSelected)
+                        {
+                            if (selectedUnit.isAlive() && UnitService.isFriendly(selectedEntity))
+                            {
+                                Label("Lvl." + selectedUnit.getProfession().getLevel() + " " + selectedUnit.getProfession().getProfessionName());
+
+                                if (Button("Max Current Profession"))
+                                {
+                                    UnitHuman.setCurrentProfessionMax(selectedUnit);
+                                }
+
+                                if (Button("Best Traits"))
+                                {
+                                    UnitTrait.setBestTraits(selectedUnit);
+                                }
+                            }
+                            else if (UnitPreference.getPreference(selectedEntity, UnitPreference.IS_PLAYER_UNIT))
+                            {
+                                if (Button("Revive Unit"))
+                                {
+                                    UnitService.reviveUnit(selectedUnit, worldManager.PlayerFaction);
+                                }
+                            }
+                        }
+
+                        if (selectedEntity.isAlive() && (UnitService.isFriendly(selectedEntity)
+                            ? (!modSettings.isPeacefulEnabled && playerFactionUnitCount > 1) : true))
+                        {
+                            if (Button("Kill Unit"))
+                            {
+                                selectedEntity.hitpoints = 0f;
+                            }
+                        }
+
+                        Button("Remove Unit", ref doRemoveEntity);
+                    }
+                    else if (!isSelecting && !isDesigning && !isSelectingUnitType)
+                    {
+                        if (Time.timeSinceLevelLoad > 12f)
+                        {
+                            Button("Save Game", ref doSaveGame);
+                        }
+
+                        if (Button("Add Player Units"))
+                        {
+                            isSelectingHumanType = true;
+                        }
+
+                        if (!modSettings.isPeacefulEnabled)
+                        {
+                            if (Button("Add Enemy Units"))
+                            {
+                                isSelectingEnemyType = true;
+                            }
+                        }                        
+                    }
 
                     if (isSelecting)
                     {
@@ -515,37 +592,14 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                                 }
                             }
                         }
-                        else if (isChopping)
-                        {
-                            Label(getKeyString(PRIMARY_KEY) + " Place Tree");
-                            Label(getKeyString(PICK_BLOCK_KEY) + " Place Shrub");
-                            Button("Remove All Trees", ref doRemoveAllTrees);
-                        }
                     }
-                    else if (isEntitySelected)
+                    else if (isPlayableUnitSelected && selectedUnit.isAlive())
                     {
-                        Label(selectedEntity.unitName);
-                        Button("Remove Entity", ref doRemoveEntity);
+                        drawPlayerUnitSettings(playerUnitTraitSettings, selectedUnit, UnitTrait.List, ref doSetPlayerUnitSettings);
                     }
                     else if (!isSelecting && !isDesigning && !isSelectingUnitType)
                     {
-                        if (Time.timeSinceLevelLoad > 12f)
-                        {
-                            Button("Save Game", ref doSaveGame);
-                        }
 
-                        if (Button("Add Player Units"))
-                        {
-                            isSelectingHumanType = true;
-                        }
-
-                        if (!modSettings.isPeacefulEnabled)
-                        {
-                            if (Button("Add Enemy Units"))
-                            {
-                                isSelectingEnemyType = true;
-                            }
-                        }                        
                     }
                     else if (isSelectingHumanType && !isPlacingHuman)
                     {
@@ -599,6 +653,42 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
             {
                 controlPlayer.buildingPillarless = false;
                 controlPlayer.buildingTrimless = false;
+            }
+        }
+
+        private PlayerUnitSettings playerUnitTraitSettings;
+        //private PlayerUnitSettings playerUnitPreferenceSettings;
+        private void drawPlayerUnitSettings(PlayerUnitSettings playerUnitSettings, APlayableEntity entity, IModCollectionItem[] collection, ref bool onClick)
+        {
+            if (collection != null && UnitService.isFriendly(entity))
+            {
+                foreach (IModCollectionItem item in collection)
+                {
+                    CheckBox(item.Description, ref playerUnitSettings.getSetting(item).Enabled, ref onClick);
+                }
+            }
+        }
+
+        private void updatePlayerUnitSettings(ref PlayerUnitSettings playerUnitSettings, APlayableEntity entity, IModCollectionItem[] collection)
+        {
+            if (UnitPreference.isPlayableEntity(entity))
+            {
+                playerUnitSettings = PlayerUnitSettings.fromEntity(entity, collection);
+            }
+            else
+            {
+                playerUnitSettings = null;
+            }
+        }
+
+        private void setPlayerUnitSettings(PlayerUnitSettings playerUnitSettings, APlayableEntity entity, IModCollectionItem[] collection)
+        {
+            if (playerUnitSettings != null)
+            {
+                foreach (IModCollectionItem item in collection)
+                {
+                    UnitPreference.setPreference(entity, item.Name, playerUnitSettings.getSetting(item).Enabled);
+                }
             }
         }
     }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Plugin.BlowyAsteroid.TimberAndStoneMod
@@ -196,7 +197,17 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         private float getNextControlYPosition()
         {
             return isScrollView ? getNextScrollControlYPosition() : getNextWindowControlYPosition();
-        }               
+        }
+
+        private float getCurrentControlYPosition()
+        {
+            return isScrollView ? START_Y_WINDOW + BUTTON_HEIGHT * windowControlIndex : START_Y_SCROLL + BUTTON_HEIGHT * scrollControlIndex;
+        }
+
+        private float getPreviousControlYPosition()
+        {
+            return isScrollView ? START_Y_WINDOW + BUTTON_HEIGHT * windowControlIndex-- : START_Y_SCROLL + BUTTON_HEIGHT * scrollControlIndex--;
+        } 
 
         protected void Label(String text)
         {
@@ -227,7 +238,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         protected Vector2 BeginScrollView(Rect scrollViewContainer, Rect scrollContainer)
         {
             isScrollView = true;
-            scrollViewContainer.y = START_Y_WINDOW + BUTTON_HEIGHT * windowControlIndex;
+            scrollViewContainer.y = START_Y_WINDOW + BUTTON_HEIGHT * windowControlIndex + BUTTON_PADDING;
             return scrollPosition = GUI.BeginScrollView(scrollViewContainer, scrollPosition, scrollContainer);
         }
 
@@ -236,13 +247,19 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
             isScrollView = false;
 
             parentContainer.height = WINDOW_TITLE_HEIGHT + BUTTON_HEIGHT * (windowControlIndex + scrollControlIndex) + DOUBLE_PADDING;
+
+            if (scrollControlIndex > 0)
+            {
+                parentContainer.height += BUTTON_PADDING;
+            }
+
             scrollContainer.height = BUTTON_HEIGHT * scrollControlIndex;
 
             if (parentContainer.height > MAX_CONTAINER_HEIGHT)
             {
                 parentContainer.x = Screen.width - originalWidth - BUTTON_PADDING;
                 parentContainer.height = MAX_CONTAINER_HEIGHT;
-                scrollViewContainer.height = parentContainer.height - WINDOW_TITLE_HEIGHT - BUTTON_HEIGHT * windowControlIndex - DOUBLE_PADDING;
+                scrollViewContainer.height = parentContainer.height - WINDOW_TITLE_HEIGHT - BUTTON_HEIGHT * windowControlIndex - DOUBLE_PADDING - BUTTON_PADDING;
             }
             else
             {
