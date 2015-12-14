@@ -81,12 +81,11 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
             return attempts < MAX_SPAWN_ATTEMPTS;
         }
 
-        private const String ANIMAL_RANDOM = "random";
         public void spawnAnimal()
         {
             if (unitManager.wildFaunaUnits.Count < MAX_ANIMAL_COUNT)
             {
-                unitManager.AddAnimal(ANIMAL_RANDOM, Vector3.zero, false);
+                addAnimal(UnitAnimal.Random, Vector3.zero);
             }
         }
 
@@ -112,6 +111,11 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
             UnitPreference.setPreference(entity, UnitPreference.TRAIN_UNDER_LEVEL_3, true);
 
             return entity;
+        }
+
+        public AAnimalEntity addAnimal(UnitAnimal type, Vector3 position)
+        {
+            return unitManager.AddAnimal(type.Name.ToLower(), position, false);
         }
 
         private IBlock tempBlock;

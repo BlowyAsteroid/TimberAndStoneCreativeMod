@@ -51,6 +51,7 @@
     <Compile Include="IModCollectionItem.cs" />
     <Compile Include="PlayerUnitSettings.cs" />
     <Compile Include="ResourceId.cs" />
+    <Compile Include="UnitAnimal.cs" />
     <Compile Include="UnitEnemy.cs" />
     <Compile Include="ModUtils.cs" />
     <Compile Include="PluginMain.cs" />

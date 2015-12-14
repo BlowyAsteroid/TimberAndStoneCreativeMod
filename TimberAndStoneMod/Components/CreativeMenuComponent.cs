@@ -51,7 +51,6 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         private bool isStructuring { get { return controlPlayer.designing && controlPlayer.designType == eDesignType.STRUCTURE; } }
         private bool isSelecting { get { return controlPlayer.selecting; } }
         private bool isDesigning { get { return controlPlayer.designing; } }
-        private bool isSelectingUnitType { get { return isSelectingHumanType || isSelectingEnemyType; } }
         private bool isPlacingUnitType { get { return isPlacingHuman || isPlacingHuman; } }
 
         private bool isScrolling { get { return Input.GetAxis(Mouse.SCROLL_WHEEL) != 0; } }
@@ -74,6 +73,8 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 
         private bool isMouseInGUIOverride = false;
         private bool isScrollOverride = false;
+        
+        private bool isSelectingUnitType { get { return isSelectingHumanType || isSelectingEnemyType || isSelectingAnimalType; } }
 
         private UnitHuman selectedUnitType;
         private bool isSelectingHumanType = false;
@@ -85,11 +86,16 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         private bool isPlacingEnemy = false;
         private bool doPlaceEnemy = false;
 
+        private UnitAnimal selectedAnimalType;
+        private bool isSelectingAnimalType = false;
+        private bool isPlacingAnimal = false;
+        private bool doPlaceAnimal = false;
+
         private MonoBehaviour selectedObject { get { return worldManager.PlayerFaction.selectedObject; } }
         private bool isObjectSelected { get { return selectedObject != null; } }
         private bool isLivingEntitySelected { get { return isObjectSelected && selectedObject is ALivingEntity; } }
-        private ALivingEntity selectedEntity { get { return isLivingEntitySelected ? selectedObject as ALivingEntity : null; } }        
         private bool isPlayableUnitSelected { get { return isObjectSelected && selectedObject is APlayableEntity; } }
+        private ALivingEntity selectedEntity { get { return isLivingEntitySelected ? selectedObject as ALivingEntity : null; } }  
         private APlayableEntity selectedUnit { get { return isPlayableUnitSelected ? selectedObject as APlayableEntity : null; } }
         private int playerFactionUnitCount { get { return worldManager.PlayerFaction.units.Where(u => u.isAlive()).Count(); } }
         private bool doRemoveEntity = false;
@@ -116,8 +122,10 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 controlPlayer.CancelDesigning(true);
                 isSelectingEnemyType = false;
                 isSelectingHumanType = false;
+                isSelectingAnimalType = false;
                 isPlacingHuman = false;
                 isPlacingEnemy = false;
+                isPlacingAnimal = false;
             }
 
             if ((Input.GetMouseButtonUp(Mouse.RIGHT) && !controlPlayer.cameraRotate)
@@ -149,6 +157,15 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 else if (isSelectingEnemyType)
                 {
                     isSelectingEnemyType = false;
+                }
+
+                if (isPlacingAnimal)
+                {
+                    isPlacingAnimal = false;
+                }
+                else if (isSelectingAnimalType)
+                {
+                    isSelectingAnimalType = false;
                 }
 
                 isMouseInGUIOverride = false;
@@ -184,6 +201,13 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                     if (Input.GetKeyDown(PRIMARY_KEY))
                     {
                         doPlaceEnemy = true;
+                    }
+                }
+                else if (isPlacingAnimal)
+                {
+                    if (Input.GetKeyDown(PRIMARY_KEY))
+                    {
+                        doPlaceAnimal = true;
                     }
                 }
                 
@@ -410,6 +434,15 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                         unitService.addEnemy(selectedEnemyType, mouseWorldPosition);
                     }
                 }
+                else if (doPlaceAnimal)
+                {
+                    doPlaceAnimal = false;
+                    if (isMouseInWorld(out mouseWorldPosition))
+                    {
+                        //Place Selected Animal Type At Mouse Position
+                        unitService.addAnimal(selectedAnimalType, mouseWorldPosition);
+                    }
+                }
                 else if (doRemoveEntity)
                 {
                     doRemoveEntity = false;
@@ -479,6 +512,10 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                     {
                         Label("Enemy Units");
                     }
+                    else if (isSelectingAnimalType && !isPlacingAnimal)
+                    {
+                        Label("Animal Units");
+                    }
                     else if (isPlacingHuman)
                     {
                         Label(selectedUnitType.Name);
@@ -487,6 +524,11 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                     else if (isPlacingEnemy)
                     {
                         Label("Enemy: " + selectedEnemyType.Name);
+                        Label(getKeyString(PRIMARY_KEY) + " To Place");
+                    }
+                    else if (isPlacingAnimal)
+                    {
+                        Label("Animal: " + selectedAnimalType.Name);
                         Label(getKeyString(PRIMARY_KEY) + " To Place");
                     }
 
@@ -596,7 +638,12 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                             {
                                 isSelectingEnemyType = true;
                             }
-                        }                        
+                        }
+
+                        if (Button("Add Animal Units"))
+                        {
+                            isSelectingAnimalType = true;
+                        }
                     }
 
                     if (isSelecting)
@@ -652,6 +699,18 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                             {
                                 selectedEnemyType = enemyType;
                                 isPlacingEnemy = true;
+                            }
+                        }
+                    }
+                    else if (isSelectingAnimalType && !isPlacingAnimal)
+                    {
+                        //Place Animal List
+                        foreach (UnitAnimal animalType in UnitAnimal.List)
+                        {
+                            if (Button(animalType.Name))
+                            {
+                                selectedAnimalType = animalType;
+                                isPlacingAnimal = true;
                             }
                         }
                     }
