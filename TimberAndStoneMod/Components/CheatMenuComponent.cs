@@ -203,7 +203,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 
         private void fixUnitStatus(ALivingEntity entity)
         {
-            if (entity.hunger >= .5f) entity.hunger = 0f;
+            entity.hunger = 0f;
             if (entity.fatigue <= .5f) entity.fatigue = 1f;
             if (entity.morale <= .5f) entity.morale = 1f;
             if (entity.hitpoints <= entity.maxHP / 2f) entity.hitpoints = entity.maxHP;            
