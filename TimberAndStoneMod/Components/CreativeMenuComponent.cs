@@ -668,7 +668,6 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         }
 
         private PlayerUnitSettings playerUnitTraitSettings;
-        //private PlayerUnitSettings playerUnitPreferenceSettings;
         private void drawPlayerUnitSettings(PlayerUnitSettings playerUnitSettings, APlayableEntity entity, IModCollectionItem[] collection, ref bool onClick)
         {
             if (collection != null && UnitService.isFriendly(entity))
