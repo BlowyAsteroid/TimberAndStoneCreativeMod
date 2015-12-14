@@ -279,15 +279,20 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 
                 if (!ModUtils.isBuildable(tempReplaceBlock.properties, true)) continue;
 
-                if (tempReplaceBlock.properties.getVariations() != null)
+                if (properties.getVariations() != null && tempReplaceBlock.properties.getVariations() == null) continue;
+
+                if (tempReplaceBlock.properties.getVariations() != null && properties.getVariations() != null)
                 {
-                    tempReplaceBlockProperties = getSlopeBlockPropertiesFromCubeBlock(properties);
-                    tempReplaceBlockData = tempReplaceBlock.properties.getVariations()[ModUtils.getVariationIndexFromBlock(tempReplaceBlock)][0];
+                    if (tempReplaceBlock.properties.isTransparent())
+                    {
+                        tempReplaceBlockProperties = getSlopeBlockPropertiesFromCubeBlock(properties);
+                        tempReplaceBlockData = tempReplaceBlock.properties.getVariations()[ModUtils.getVariationIndexFromBlock(tempReplaceBlock)][0];
+                    }
+                    else continue;
                 }
-                else if (properties.getVariations() != null)
+                else if (tempReplaceBlock.properties.getVariations() != null)
                 {
-                    tempReplaceBlockProperties = getCubeBlockPropertiesFromSlopeBlock(properties);
-                    tempReplaceBlockData = properties.getVariations()[ModUtils.getVariationIndexFromBlock(tempReplaceBlock)][0];
+                    continue;
                 }
                 else
                 {
