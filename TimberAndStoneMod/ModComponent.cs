@@ -214,6 +214,11 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
             guiManager.DrawTextCenteredWhite(getRectangle(START_X, getNextControlYPosition(), BUTTON_WIDTH, BUTTON_HEIGHT), text);
         }
 
+        protected void LargeLabel(String text)
+        {
+            guiManager.DrawLargeTextCenteredWhite(getRectangle(START_X, getNextControlYPosition(), BUTTON_WIDTH, BUTTON_HEIGHT), text);
+        }
+
         protected bool Button(String text)
         {
             return Button(START_X, getNextControlYPosition(), text);

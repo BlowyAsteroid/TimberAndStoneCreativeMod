@@ -494,8 +494,19 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                     {
                         if (isSelecting)
                         {
-                            Label("Hold " + getKeyString(PRIMARY_KEY) + " to Replace");
-                            Label("Hold " + getKeyString(PICK_BLOCK_KEY) + " to Smooth");
+                            if (Input.GetKey(PRIMARY_KEY))
+                            {
+                                Label("Replacing");
+                            }
+                            else if (Input.GetKey(PICK_BLOCK_KEY))
+                            {
+                                Label("Smoothing");
+                            }
+                            else 
+                            {
+                                Label("Hold " + getKeyString(PRIMARY_KEY) + " to Replace");
+                                Label("Hold " + getKeyString(PICK_BLOCK_KEY) + " to Smooth");
+                            }
                         }
                         else if (isDesigning)
                         {
