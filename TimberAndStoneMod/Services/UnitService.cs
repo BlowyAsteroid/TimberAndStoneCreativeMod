@@ -19,7 +19,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
             return instance.getUnitAlignment(entity) == Alignment.Ally && entity is HumanEntity;
         }
 
-        public static void reviveUnit(APlayableEntity entity, IFaction faction)
+        public static void reviveUnit(ALivingEntity entity, IFaction faction)
         {
             entity.hitpoints = entity.maxHP;
             entity.hunger = 0f;
