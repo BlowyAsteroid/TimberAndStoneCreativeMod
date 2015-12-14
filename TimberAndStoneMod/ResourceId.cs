@@ -157,6 +157,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         public static readonly List<int> RawMaterialList = getResourceIds(DIRT, WHEAT_SEED);
         public static readonly List<int> ProcessedMaterialList = getResourceIds(TIMBER, BANDAGES);
         public static readonly List<int> AllPlayerResourcesList = getResourceIds(DIRT, TOWER_SHIELD);
+        public static readonly List<int> SeedsList = getResourceIds(CARROT_SEED, WHEAT_SEED);
         public static readonly List<int> HumanGearList = getResourceIds(KNIFE, TOWER_SHIELD);
         public static readonly List<int> EnemyGearList = getResourceIds(GOBLIN_BONECLUB, SKELETAL_ROUND_SHIELD);
         

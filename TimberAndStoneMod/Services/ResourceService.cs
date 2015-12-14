@@ -139,6 +139,15 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
         {
             if ((storageItemCount = getStorageItemCount(resource.storageIndex)) == 0 || resource.mass <= 0) return;
 
+            if (ResourceId.SeedsList.Contains(resource.index)) 
+            { 
+                percentage *= .25f; 
+            }
+            else if (ResourceId.FOOD == resource.index)
+            {
+                percentage *= 7f;
+            }
+
             availableMassPerItem = getStorageCap(resource.storageIndex) * percentage / storageItemCount;
             newQuantity = Convert.ToInt32(availableMassPerItem / resource.mass);
 
