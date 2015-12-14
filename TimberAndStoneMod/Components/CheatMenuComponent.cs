@@ -95,8 +95,15 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 
                 if (modSettings.isPeacefulEnabled)
                 {
-                    //Destroy All Enemy Units
-                    unitService.getEnemyUnits().ForEach(u => u.Destroy());
+                    //Destroy All Enemy Units  
+                    foreach (ALivingEntity entity in unitService.getEnemyUnits())
+                    {
+                        if (!entity.isAlive() && UnitPreference.getPreference(entity, UnitPreference.IS_PLAYER_UNIT))
+                        {
+                            UnitService.reviveUnit(entity, worldManager.PlayerFaction);
+                        }
+                        else entity.Destroy();
+                    }
                 }
             }     
 
