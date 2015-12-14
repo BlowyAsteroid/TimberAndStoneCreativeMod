@@ -128,6 +128,8 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 isPlacingAnimal = false;
             }
 
+            if (isDesigning && controlPlayer.designType == eDesignType.PATROL) return;
+
             if ((Input.GetMouseButtonUp(Mouse.RIGHT) && !controlPlayer.cameraRotate)
                 || Input.GetKeyUp(KeyCode.Tab) || Input.GetKeyUp(KeyCode.Escape))
             {
