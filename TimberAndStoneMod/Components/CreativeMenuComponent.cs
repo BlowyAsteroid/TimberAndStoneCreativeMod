@@ -109,6 +109,22 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         }
 
         private IBlock tempBlock;
+        private bool getBlockAtMouse(out IBlock block)
+        {
+            if (isMouseInWorld(out mouseWorldPosition))
+            {
+                block = buildingService.getBlock(mouseWorldPosition);
+
+                if (block.properties.GetType() == typeof(BlockAir))
+                {
+                    block = tempBlock.relative(0, -1, 0);
+                }
+            }
+            else block = null;
+
+            return block != null;
+        }
+
         private bool shiftClickUp = false;
         public void Update()
         {         
@@ -212,6 +228,14 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                         doPlaceAnimal = true;
                     }
                 }
+
+                if (Input.GetKey(KeyCode.Z))
+                {
+                    if (getBlockAtMouse(out tempBlock))
+                    {
+                        buildingService.setZLevel(tempBlock.coordinate.absolute.y + 2);
+                    }
+                }
                 
                 if (!isSelecting && !isSelectingUnitType)
                 {    
@@ -244,24 +268,20 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                     else if (Input.GetKeyUp(PICK_BLOCK_KEY))
                     {
                         //Pick Block
-                        tempBlock = buildingService.getBlock(controlPlayer.WorldPositionAtMouse());
-
-                        if (tempBlock.properties.GetType() == typeof(BlockAir))
+                        if (getBlockAtMouse(out tempBlock))
                         {
-                            tempBlock = tempBlock.relative(0, -1, 0);
-                        }
+                            if (ModUtils.isBuildable(tempBlock.properties))
+                            {
+                                updateControlPlayerBlockProperties(tempBlock.properties, tempBlock);
+                                controlPlayer.StartDesigning(eDesignType.BUILD);
+                            }
 
-                        if (ModUtils.isBuildable(tempBlock.properties))
-                        {
-                            updateControlPlayerBlockProperties(tempBlock.properties, tempBlock);
-                            controlPlayer.StartDesigning(eDesignType.BUILD);
-                        }
-
-                        if (Input.GetKey(KeyCode.LeftControl))
-                        {
-                            log("ID: " + tempBlock.properties.getID());
-                            log("Variation: " + controlPlayer.buildingVariationIndex);
-                            log("Name: " + tempBlock.properties.getName());
+                            if (Input.GetKey(KeyCode.LeftControl))
+                            {
+                                log("ID: " + tempBlock.properties.getID());
+                                log("Variation: " + controlPlayer.buildingVariationIndex);
+                                log("Name: " + tempBlock.properties.getName());
+                            }
                         }
                     }
                 }

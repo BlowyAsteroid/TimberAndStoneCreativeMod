@@ -416,5 +416,14 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
             structure.HideAccessPoints();
             structure.AddBlocks(98);            
         }
+
+        public void setZLevel(float position)
+        {
+            if (position > 0 && position < chunkManager.worldSize.y)
+            {
+                while (chunkManager.shownZLevel < position) chunkManager.ZLevelUp(true);
+                while (chunkManager.shownZLevel > position) chunkManager.ZLevelDown();
+            }
+        }
     }
 }
