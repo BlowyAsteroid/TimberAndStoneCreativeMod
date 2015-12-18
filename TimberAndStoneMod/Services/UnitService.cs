@@ -27,6 +27,30 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
             entity.interruptTask(new TaskWander(entity));
         }
 
+        public void reviveUnit(ALivingEntity entity)
+        {
+            if (UnitPreference.getPreference(entity, UnitPreference.IS_PLAYER_UNIT))
+            {
+                UnitService.reviveUnit(entity, worldManager.PlayerFaction);
+            }
+            else if (entity is GoblinEntity)
+            {
+                UnitService.reviveUnit(entity, worldManager.GoblinFaction);
+            }
+            else if (entity is SkeletonEntity)
+            {
+                UnitService.reviveUnit(entity, worldManager.UndeadFaction);
+            }
+            else if (entity is HumanEntity)
+            {
+                UnitService.reviveUnit(entity, worldManager.NeutralHostileFaction);
+            }
+            else if (entity is AAnimalEntity)
+            {
+                UnitService.reviveUnit(entity, worldManager.GaiaFaction);
+            }
+        }
+
         private const int MAX_SPAWN_ATTEMPTS = 10;
         private const int MAX_ANIMAL_COUNT = 250;
 

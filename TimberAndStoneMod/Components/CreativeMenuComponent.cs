@@ -609,26 +609,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                         {
                             if (Button("Revive Unit"))
                             {
-                                if (UnitPreference.getPreference(selectedEntity, UnitPreference.IS_PLAYER_UNIT))
-                                {
-                                    UnitService.reviveUnit(selectedUnit, worldManager.PlayerFaction);
-                                }
-                                else if (selectedEntity is GoblinEntity)
-                                {
-                                    UnitService.reviveUnit(selectedEntity, worldManager.GoblinFaction);
-                                }
-                                else if (selectedEntity is SkeletonEntity)
-                                {
-                                    UnitService.reviveUnit(selectedEntity, worldManager.UndeadFaction);
-                                }
-                                else if (selectedEntity is HumanEntity)
-                                {
-                                    UnitService.reviveUnit(selectedEntity, worldManager.NeutralHostileFaction);
-                                }
-                                else if (selectedEntity is AAnimalEntity)
-                                {
-                                    UnitService.reviveUnit(selectedEntity, worldManager.GaiaFaction);
-                                }
+                                unitService.reviveUnit(selectedEntity);
                             }
                         }
                         else if (selectedEntity.isAlive() && (UnitService.isFriendly(selectedEntity)
