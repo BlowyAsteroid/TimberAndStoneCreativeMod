@@ -14,6 +14,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         public const String IS_ALWAYS_DAYTIME_ENABLED = "blowy.cheats.daytime";
         public const String IS_INFINITE_MATERIALS_ENABLED = "blowy.cheats.infinitematerials";
         public const String IS_UNLIMITED_STORAGE_ENABLED = "blowy.cheats.unlimitedstorage";
+        public const String IS_SHOW_ENEMIES_ENABLED = "blowy.cheats.showenemies";
 
         private const String NEW_SETTLEMENT = "New Settlement";
 
@@ -23,9 +24,9 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         public bool isAlwaysDaytimeEnabled;
         public bool isInfiniteMaterialsEnabled;
         public bool isUnlimitedStorageEnabled;
+        public bool isShowEnemiesEnabled;
 
-        public bool hasSettings { get { return this.isSettingsLoaded; } }
-        private bool isSettingsLoaded = false;
+        public bool isHasSettings { get; private set; }
 
         private ModSettings() { }
 
@@ -35,14 +36,15 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
 
             String prefix = settlementName + ".";
 
-            isCreativeEnabled = getPlayerSetting(prefix + IS_CREATIVE_ENABLED);
-            isCheatsEnabled = getPlayerSetting(prefix + IS_CHEATS_ENABLED);
-            isPeacefulEnabled = getPlayerSetting(prefix + IS_PEACEFUL_ENABLED);
-            isAlwaysDaytimeEnabled = getPlayerSetting(prefix + IS_ALWAYS_DAYTIME_ENABLED);
-            isInfiniteMaterialsEnabled = getPlayerSetting(prefix + IS_INFINITE_MATERIALS_ENABLED);
-            isUnlimitedStorageEnabled = getPlayerSetting(prefix + IS_UNLIMITED_STORAGE_ENABLED);
+            this.isCreativeEnabled = getPlayerSetting(prefix + IS_CREATIVE_ENABLED);
+            this.isCheatsEnabled = getPlayerSetting(prefix + IS_CHEATS_ENABLED);
+            this.isPeacefulEnabled = getPlayerSetting(prefix + IS_PEACEFUL_ENABLED);
+            this.isAlwaysDaytimeEnabled = getPlayerSetting(prefix + IS_ALWAYS_DAYTIME_ENABLED);
+            this.isInfiniteMaterialsEnabled = getPlayerSetting(prefix + IS_INFINITE_MATERIALS_ENABLED);
+            this.isUnlimitedStorageEnabled = getPlayerSetting(prefix + IS_UNLIMITED_STORAGE_ENABLED);
+            this.isShowEnemiesEnabled = getPlayerSetting(prefix + IS_SHOW_ENEMIES_ENABLED);
 
-            isSettingsLoaded = true;
+            this.isHasSettings = true;
         }
 
         public void saveSettings(String settlementName)
@@ -57,6 +59,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
             setPlayerSetting(prefix + IS_ALWAYS_DAYTIME_ENABLED, this.isAlwaysDaytimeEnabled);
             setPlayerSetting(prefix + IS_INFINITE_MATERIALS_ENABLED, this.isInfiniteMaterialsEnabled);
             setPlayerSetting(prefix + IS_UNLIMITED_STORAGE_ENABLED, this.isUnlimitedStorageEnabled);
+            setPlayerSetting(prefix + IS_SHOW_ENEMIES_ENABLED, this.isShowEnemiesEnabled);
         }
 
         public bool isValidSettlementName(String settlementName)

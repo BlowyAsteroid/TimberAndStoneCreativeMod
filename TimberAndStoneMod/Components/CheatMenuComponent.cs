@@ -53,7 +53,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 
             if (!isTimeToUpdate(DateTime.Now.Ticks)) return;
 
-            if (modSettings.hasSettings && !isSettingsLoaded)
+            if (modSettings.isHasSettings && !isSettingsLoaded)
             {
                 isSettingsLoaded = true;
                 if (modSettings.isCheatsEnabled)
@@ -136,6 +136,10 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 {
                     //Fix Unit Status
                     unitService.getFriendlyUnits().ForEach(u => fixUnitStatus(u));
+                }
+                else if (modSettings.isShowEnemiesEnabled)
+                {
+                    unitService.getEnemyUnits().ForEach(u => u.spottedTimer = 3f);
                 }
 
                 if (modSettings.isInfiniteMaterialsEnabled)
@@ -243,7 +247,12 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 }
 
                 CheckBox("Always Daytime", ref modSettings.isAlwaysDaytimeEnabled);
-                CheckBox("Peaceful", ref modSettings.isPeacefulEnabled, ref doPeaceful);                
+                CheckBox("Peaceful", ref modSettings.isPeacefulEnabled, ref doPeaceful);
+
+                if (!modSettings.isPeacefulEnabled)
+                {
+                    CheckBox("Show Enemies", ref modSettings.isShowEnemiesEnabled); 
+                }
 
                 Button("Spawn Migrant", ref doSpawnMigrant);
                 Button("Spawn Merchant", ref doSpawnMerchant);

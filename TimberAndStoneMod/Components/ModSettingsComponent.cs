@@ -15,13 +15,13 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 
         public void Update()
         {
-            if (Input.GetKeyUp(KeyCode.Escape) && modSettings.hasSettings && Time.timeScale <= 0)
+            if (Input.GetKeyUp(KeyCode.Escape) && modSettings.isHasSettings && Time.timeScale <= 0)
             {
                 modSettings.saveSettings(worldManager.settlementName);
                 log("Settings saved for: " + worldManager.settlementName);
             }
 
-            if (modSettings.hasSettings || !isTimeToUpdate(DateTime.Now.Ticks)) return;
+            if (modSettings.isHasSettings || !isTimeToUpdate(DateTime.Now.Ticks)) return;
 
             if (modSettings.isValidSettlementName(worldManager.settlementName))
             {
