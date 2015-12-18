@@ -74,6 +74,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                     //Disable all cheats
                     modSettings.isAlwaysDaytimeEnabled = false;
                     modSettings.isPeacefulEnabled = false;
+                    modSettings.isShowEnemiesEnabled = false;
 
                     if (modSettings.isUnlimitedStorageEnabled)
                     {
@@ -139,6 +140,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 }
                 else if (modSettings.isShowEnemiesEnabled)
                 {
+                    //Show Enemy Units
                     unitService.getEnemyUnits().ForEach(u => u.spottedTimer = 3f);
                 }
 
