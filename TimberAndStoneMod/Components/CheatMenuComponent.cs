@@ -1,26 +1,14 @@
-﻿using Plugin.BlowyAsteroid.TimberAndStoneMod.Services;
+﻿using Plugin.BlowyAsteroid.Collections.TimberAndStoneMod;
+using Plugin.BlowyAsteroid.TimberAndStoneMod.Services;
 using System;
 using Timber_and_Stone;
 using UnityEngine;
 
 namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 {
-    public class CheatMenuComponent : ModComponent
+    public class CheatMenuComponent : GUIPluginComponent
     {
-        private const String PARENT_CONTAINER_TITLE = "";
-        private const int PARENT_CONTAINER_ID = 101;
-        private const float CONTAINER_WIDTH = BUTTON_WIDTH + BUTTON_PADDING * 2;
-        private const float CONTAINER_HEIGHT = WINDOW_TITLE_HEIGHT;
-
-        private const float START_X = BUTTON_PADDING;
-        private const float START_Y = WINDOW_TITLE_HEIGHT + BUTTON_PADDING;
-
-        private const float FILL_STORAGE_PERCENTAGE = .70f;
-        private const float MINIMUM_RESOURCE_MASS = 0.01f;
-
-        private Rect parentContainer = new Rect(
-            0f, MAIN_MENU_HEADER_HEIGHT - WINDOW_TITLE_HEIGHT, CONTAINER_WIDTH, CONTAINER_HEIGHT
-        );
+        private const float FILL_STORAGE_PERCENTAGE = 0.7f;
 
         private bool doCheats = false;
         private bool doInfiniteMaterials = false;
@@ -36,23 +24,78 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 
         private bool isSettingsLoaded = false;
 
-        public void Start()
-        {
-            setUpdatesPerSecond(1);
-        }
-
+        private ModSettings modSettings = ModSettings.getInstance();
         private ResourceService resourceService = ResourceService.getInstance();
         private UnitService unitService = UnitService.getInstance();
-        
-        public void Update()
+
+        public override void OnStart()
         {
-            if (isComponentVisible)
+            setWindowSize(260f + sectionMain.ControlMargin * 2, Screen.height / 2);
+            setWindowPosition(0f, 0f);
+            setUpdatesPerSecond(1);
+
+            isVisibleInGame = true;
+            isVisibleInMainMenu = false;
+            isVisibleDuringGameOver = false;
+
+            sectionMain.Direction = GUISection.FlowDirection.VERTICAL;
+            sectionMain.Flow = GUISection.Overflow.HIDDEN;
+        }
+
+        public override void OnDraw(int windowId)
+        {
+            Window(this.title);
+
+            CheckBox(this.containerWidth - 94f - sectionMain.ControlMargin, WINDOW_TITLE_HEIGHT + sectionMain.ControlMargin + sectionMain.ControlPadding,
+                sectionMain.ControlWidth / 2, sectionMain.ControlHeight, "Cheats", ref modSettings.isCheatsEnabled, ref doCheats);
+
+            sectionMain.Begin(0, WINDOW_TITLE_HEIGHT + sectionMain.ControlHeight + sectionMain.ControlPadding, this.ParentContainer.width, this.ParentContainer.height);
+
+            if (isMouseHover && modSettings.isCheatsEnabled)
             {
-                translateMouse();
+                if (!modSettings.isUnlimitedStorageEnabled)
+                {
+                    sectionMain.CheckBox("Infinite Materials", ref modSettings.isInfiniteMaterialsEnabled, ref doInfiniteMaterials);
+                }
+
+                if (!modSettings.isInfiniteMaterialsEnabled)
+                {
+                    sectionMain.CheckBox("Unlimited Storage", ref modSettings.isUnlimitedStorageEnabled, ref doUnlimitedStorage);
+                }
+
+                sectionMain.CheckBox("Always Daytime", ref modSettings.isAlwaysDaytimeEnabled);
+                sectionMain.CheckBox("Peaceful", ref modSettings.isPeacefulEnabled, ref doPeaceful);
+
+                if (!modSettings.isPeacefulEnabled)
+                {
+                    sectionMain.CheckBox("Show Enemies", ref modSettings.isShowEnemiesEnabled);
+                }
+
+                sectionMain.Button("Spawn Migrant", ref doSpawnMigrant);
+                sectionMain.Button("Spawn Merchant", ref doSpawnMerchant);
+                sectionMain.Button("Spawn Animal", ref doSpawnAnimal);
+
+                if (!modSettings.isPeacefulEnabled)
+                {
+                    sectionMain.Button("Spawn Invasion", ref doSpawnInvasion);
+                    sectionMain.Button("Kill All Enemies", ref doKillEnemies);
+                }
+
+                sectionMain.Button("Best Traits", ref doBestTraits);
+                sectionMain.Button("Max Current Professions", ref doMaxCurrentProfessions);
             }
 
-            if (!isTimeToUpdate(DateTime.Now.Ticks)) return;
+            sectionMain.End();
 
+            if (sectionMain.hasChildren)
+            {
+                this.containerHeight = sectionMain.controlYPosition + sectionMain.ControlMargin;
+            }
+            else this.containerHeight = sectionMain.controlYPosition;
+        } 
+        
+        public override void OnUpdate()
+        {
             if (modSettings.isHasSettings && !isSettingsLoaded)
             {
                 isSettingsLoaded = true;
@@ -120,7 +163,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
             {
                 doInfiniteMaterials = false;
                 modSettings.isUnlimitedStorageEnabled = false;
-                //doUnlimitedStorage = true;
+
                 if (modSettings.isInfiniteMaterialsEnabled)
                 {//Lower Resource Mass                    
                     resourceService.getAllResources().ForEach(r => resourceService.lowerResourceMass(r));
@@ -213,64 +256,6 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
             if (entity.fatigue <= .5f) entity.fatigue = 1f;
             if (entity.morale <= .5f) entity.morale = 1f;
             if (entity.hitpoints <= entity.maxHP / 2f) entity.hitpoints = entity.maxHP;            
-        } 
-        
-        public void OnGUI()
-        {
-            if (isGameRunning)
-            {
-                if (isComponentVisible)
-                {
-                    parentContainer = createWindow(PARENT_CONTAINER_ID, parentContainer, drawCheatWindow);
-
-                    isMouseHover = updateMouseForUI(parentContainer);                    
-                }
-            }
-        }        
-
-        private void drawCheatWindow(int id)
-        {
-            Window(parentContainer, PARENT_CONTAINER_TITLE);
-
-            CheckBox(BUTTON_WIDTH - 94f, START_Y, "Cheats", ref modSettings.isCheatsEnabled, ref doCheats);
-
-            getNextWindowControlYPosition();
-
-            if (isMouseHover && modSettings.isCheatsEnabled)
-            {
-                if (!modSettings.isUnlimitedStorageEnabled)
-                {
-                    CheckBox("Infinite Materials", ref modSettings.isInfiniteMaterialsEnabled, ref doInfiniteMaterials);
-                }
-
-                if (!modSettings.isInfiniteMaterialsEnabled)
-                {
-                    CheckBox("Unlimited Storage", ref modSettings.isUnlimitedStorageEnabled, ref doUnlimitedStorage);
-                }
-
-                CheckBox("Always Daytime", ref modSettings.isAlwaysDaytimeEnabled);
-                CheckBox("Peaceful", ref modSettings.isPeacefulEnabled, ref doPeaceful);
-
-                if (!modSettings.isPeacefulEnabled)
-                {
-                    CheckBox("Show Enemies", ref modSettings.isShowEnemiesEnabled); 
-                }
-
-                Button("Spawn Migrant", ref doSpawnMigrant);
-                Button("Spawn Merchant", ref doSpawnMerchant);
-                Button("Spawn Animal", ref doSpawnAnimal);
-
-                if (!modSettings.isPeacefulEnabled)
-                {
-                    Button("Spawn Invasion", ref doSpawnInvasion);
-                    Button("Kill All Enemies", ref doKillEnemies);
-                }
-
-                Button("Best Traits", ref doBestTraits);
-                Button("Max Current Professions", ref doMaxCurrentProfessions);
-            }
-
-            parentContainer.height = WINDOW_TITLE_HEIGHT + BUTTON_HEIGHT * currentControlIndex + DOUBLE_PADDING;
-        }        
+        }    
     }
 }

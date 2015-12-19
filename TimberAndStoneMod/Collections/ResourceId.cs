@@ -1,6 +1,6 @@
 ﻿
 using System.Collections.Generic;
-namespace Plugin.BlowyAsteroid.TimberAndStoneMod
+namespace Plugin.BlowyAsteroid.Collections.TimberAndStoneMod
 {
     public static class ResourceId
     {

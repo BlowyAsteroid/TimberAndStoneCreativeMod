@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Plugin.BlowyAsteroid.TimberAndStoneMod
+namespace Plugin.BlowyAsteroid.Collections.TimberAndStoneMod
 {
     public enum UnitTraitType { GOOD, BAD }
 

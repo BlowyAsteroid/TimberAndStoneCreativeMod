@@ -3,19 +3,19 @@ using UnityEngine;
 
 namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 {
-    public class GameSpeedComponent : ModComponent
+    public class GameSpeedComponent : PluginComponent
     {
         private const float MAX_GAME_SPEED = 5f;
         private const KeyCode INCREASE_KEY = KeyCode.Equals;
         private const KeyCode DECREASE_KEY = KeyCode.Minus;
 
-        public void Start() 
+        public override void OnStart() 
         {
             log(String.Format("Press {0} to increase game speed.", INCREASE_KEY));
             log(String.Format("Press {0} to decrease game speed.", DECREASE_KEY));
         }
 
-        public void Update()
+        public override void OnInput()
         {
             if (Input.GetKeyUp(INCREASE_KEY))
             {

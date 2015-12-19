@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Timber_and_Stone;
 
-namespace Plugin.BlowyAsteroid.TimberAndStoneMod
+namespace Plugin.BlowyAsteroid.Collections.TimberAndStoneMod
 {
     public sealed class UnitHuman : IModCollectionItem
     {

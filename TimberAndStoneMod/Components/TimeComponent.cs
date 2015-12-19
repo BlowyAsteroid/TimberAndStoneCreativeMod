@@ -2,23 +2,22 @@
 
 namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 {
-    public class TimeComponent : ModComponent
+    public class TimeComponent : PluginComponent
     {
         private const int DAY_TIME_START = 8;
         private const int DAY_TIME_END = 17;
         private const float TIME_SCALE = .6f;
 
-        public void Start() 
+        private double tempMinutes;
+
+        public override void OnStart() 
         {
             setUpdatesPerSecond(5);
         }
 
-        private double tempMinutes;
-        public void Update()
+        public override void OnUpdate()
         {
-            if (!isTimeToUpdate(DateTime.Now.Ticks)) return;
-
-            if (modSettings.isAlwaysDaytimeEnabled)
+            if (ModSettings.getInstance().isAlwaysDaytimeEnabled)
             {
                 if (timeManager.hour >= DAY_TIME_END || timeManager.hour < DAY_TIME_START)
                 {

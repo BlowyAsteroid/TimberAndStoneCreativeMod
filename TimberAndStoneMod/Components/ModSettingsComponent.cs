@@ -6,22 +6,27 @@ using UnityEngine;
 
 namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 {
-    class ModSettingsComponent : ModComponent
+    class ModSettingsComponent : PluginComponent
     {
-        public void Start()
+        private ModSettings modSettings = ModSettings.getInstance();
+
+        public override void OnStart()
         {
             setUpdatesPerSecond(1);
         }
 
-        public void Update()
+        public override void OnInput()
         {
             if (Input.GetKeyUp(KeyCode.Escape) && modSettings.isHasSettings && Time.timeScale <= 0)
             {
                 modSettings.saveSettings(worldManager.settlementName);
                 log("Settings saved for: " + worldManager.settlementName);
-            }
+            }            
+        }
 
-            if (modSettings.isHasSettings || !isTimeToUpdate(DateTime.Now.Ticks)) return;
+        public override void OnUpdate()
+        {
+            if (modSettings.isHasSettings) return;
 
             if (modSettings.isValidSettlementName(worldManager.settlementName))
             {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Plugin.BlowyAsteroid.TimberAndStoneMod
+namespace Plugin.BlowyAsteroid.Collections.TimberAndStoneMod
 {
     public sealed class UnitPreference : IModCollectionItem
     {

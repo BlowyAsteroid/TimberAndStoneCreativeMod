@@ -1,4 +1,5 @@
-﻿using Timber_and_Stone;
+﻿using Plugin.BlowyAsteroid.Collections.TimberAndStoneMod;
+using Timber_and_Stone;
 using Timber_and_Stone.Profession.Human;
 
 namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services

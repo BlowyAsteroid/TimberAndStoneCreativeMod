@@ -5,6 +5,7 @@ using System;
 using Timber_and_Stone.API;
 using Timber_and_Stone.Event;
 using UnityEngine;
+using Plugin.BlowyAsteroid.Collections.TimberAndStoneMod;
 
 namespace Plugin.BlowyAsteroid.TimberAndStoneMod
 {
@@ -14,8 +15,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         private readonly EventManager eventManager = EventManager.getInstance();
         private readonly ModSettings modSettings = ModSettings.getInstance();
 
-        private void log(String message) { guiManager.AddTextLine(message); }
-        private void log<T>(T obj) { log(Convert.ToString(obj)); }
+        private void log<T>(T obj) { guiManager.AddTextLine(Convert.ToString(obj)); }
 
         private Component addComponent(Type componentType)
         {

@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Plugin.BlowyAsteroid.TimberAndStoneMod</RootNamespace>
-    <AssemblyName>TimberAndStoneMod</AssemblyName>
+    <AssemblyName>Plugin</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -48,27 +48,31 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Components\ModSettingsComponent.cs" />
-    <Compile Include="IModCollectionItem.cs" />
+    <Compile Include="Collections\IModCollectionItem.cs" />
+    <Compile Include="GUIPluginComponent.cs" />
+    <Compile Include="GUISection.cs" />
+    <Compile Include="GUIWindowId.cs" />
     <Compile Include="PlayerUnitSettings.cs" />
-    <Compile Include="ResourceId.cs" />
-    <Compile Include="UnitAnimal.cs" />
-    <Compile Include="UnitEnemy.cs" />
-    <Compile Include="ModUtils.cs" />
+    <Compile Include="Collections\ResourceId.cs" />
+    <Compile Include="Collections\UnitAnimal.cs" />
+    <Compile Include="Collections\UnitEnemy.cs" />
+    <Compile Include="Utils\ModUtils.cs" />
+    <Compile Include="PluginComponent.cs" />
     <Compile Include="PluginMain.cs" />
     <Compile Include="Services\BuildingService.cs" />
     <Compile Include="Services\EquipmentService.cs" />
-    <Compile Include="UnitPreference.cs" />
-    <Compile Include="UnitHuman.cs" />
+    <Compile Include="Collections\UnitPreference.cs" />
+    <Compile Include="Collections\UnitHuman.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ModSettings.cs" />
     <Compile Include="Services\ResourceService.cs" />
-    <Compile Include="UnitTrait.cs" />
+    <Compile Include="Collections\UnitTrait.cs" />
     <Compile Include="Services\UnitService.cs" />
-    <Compile Include="ModComponent.cs" />
     <Compile Include="Components\CreativeMenuComponent.cs" />
     <Compile Include="Components\CheatMenuComponent.cs" />
     <Compile Include="Components\GameSpeedComponent.cs" />
     <Compile Include="Components\TimeComponent.cs" />
+    <Compile Include="Utils\RectangleUtils.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
