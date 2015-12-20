@@ -366,11 +366,11 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 
             tempFloraTransform = ModUtils.createTransform(terrainManager.treeObject);
             tempFloraTransform.transform.parent = getChunkData(coordinate).chunkObj.transform;
-            tempFloraTransform.position = getSlightlyOffsetY(coordinate.world);
+            tempFloraTransform.position = ModUtils.getSlightlyOffsetY(coordinate.world);
 
             TreeFlora tempAddTree = tempFloraTransform.GetComponent<TreeFlora>();
-            tempAddTree.blockPos = getSlightlyOffsetY(coordinate.block);
-            tempAddTree.chunkPos = getSlightlyOffsetY(coordinate.chunk);
+            tempAddTree.blockPos = ModUtils.getSlightlyOffsetY(coordinate.block);
+            tempAddTree.chunkPos = ModUtils.getSlightlyOffsetY(coordinate.chunk);
             tempAddTree.health = 100f;
 
             terrainManager.AddTree(tempAddTree);
@@ -386,11 +386,11 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 
             tempFloraTransform = ModUtils.createTransform(terrainManager.shrubObject);
             tempFloraTransform.transform.parent = getChunkData(coordinate).chunkObj.transform;
-            tempFloraTransform.position = getSlightlyOffsetY(coordinate.world);
+            tempFloraTransform.position = ModUtils.getSlightlyOffsetY(coordinate.world);
 
             Shrub tempAddShrub = tempFloraTransform.GetComponent<Shrub>();
-            tempAddShrub.blockPos = getSlightlyOffsetY(coordinate.block);
-            tempAddShrub.chunkPos = getSlightlyOffsetY(coordinate.chunk);
+            tempAddShrub.blockPos = ModUtils.getSlightlyOffsetY(coordinate.block);
+            tempAddShrub.chunkPos = ModUtils.getSlightlyOffsetY(coordinate.chunk);
             tempAddShrub.health = 100f;
             tempAddShrub.berryCount = 50;
 
@@ -402,12 +402,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
         {
             return chunkManager.chunkArray[coordinate.chunk.x, coordinate.chunk.y, coordinate.chunk.z];
         }
-
-        private Vector3 getSlightlyOffsetY(Vector3 position)
-        {
-            return new Vector3(position.x, position.y - chunkManager.voxelSize / 2, position.z);
-        }
-
+        
         public void buildStructure(ref BuildStructure structure)
         {
             structure.isBuilt = true;

@@ -45,6 +45,12 @@ namespace Plugin.BlowyAsteroid.Utils
                 && designManagerSelectedBlocks[0] != null
                 && designManagerSelectedBlocks[1] == Vector3.zero;
         }
+
+        public static Vector3 getSlightlyOffsetY(Vector3 position, int direction = -1)
+        {
+            direction = direction > 0 ? 1 : -1;
+            return new Vector3(position.x, position.y + (ChunkManager.getInstance().voxelSize / 2) * direction, position.z);
+        }
                 
         private static List<String> usedBlockNames = new List<String>();
         private static List<BlockProperties> availableBlockTypes = new List<BlockProperties>();

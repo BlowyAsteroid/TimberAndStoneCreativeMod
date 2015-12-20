@@ -1,4 +1,5 @@
 ﻿using Plugin.BlowyAsteroid.Collections.TimberAndStoneMod;
+using Plugin.BlowyAsteroid.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -140,8 +141,8 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 
         public AAnimalEntity addAnimal(UnitAnimal type, Vector3 position)
         {
-            return unitManager.AddAnimal(type.Name.ToLower(), position, false);
-        }
+            return unitManager.AddAnimal(type.Name.ToLower(), ModUtils.getSlightlyOffsetY(position, 1), false);
+        }        
 
         private IBlock tempBlock;
         private Coordinate getCoordinateAboveIfNotAir(Coordinate coordinate)
@@ -209,7 +210,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
         private ALivingEntity createGoblinUnit(bool isArcher = false)
         {
             GoblinEntity unit = createALivingEntity<GoblinEntity>(worldManager.GoblinFaction);
-            unit.addProfession(new Timber_and_Stone.Profession.Goblin.Infantry(unit, getRandomeExperience()));
+            unit.addProfession(new Timber_and_Stone.Profession.Goblin.Infantry(unit, getRandomExperience()));
 
             equipmentService.equipGoblinWeapons(unit, isArcher);
 
@@ -219,7 +220,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
         private ALivingEntity createSkeletonUnit(bool isArcher = false)
         {
             SkeletonEntity unit = createALivingEntity<SkeletonEntity>(worldManager.UndeadFaction);
-            unit.addProfession(new Timber_and_Stone.Profession.Undead.Infantry(unit, getRandomeExperience()));
+            unit.addProfession(new Timber_and_Stone.Profession.Undead.Infantry(unit, getRandomExperience()));
 
             equipmentService.equipSkeletonWeapons(unit, isArcher);
 
@@ -229,7 +230,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
         private ALivingEntity createNecromancerUnit(bool isArcher = false)
         {
             NecromancerEntity unit = createALivingEntity<NecromancerEntity>(worldManager.UndeadFaction); 
-            unit.addProfession(new Timber_and_Stone.Profession.Undead.Infantry(unit, getRandomeExperience()));  
+            unit.addProfession(new Timber_and_Stone.Profession.Undead.Infantry(unit, getRandomExperience()));  
 
             return unit;
         }
@@ -246,12 +247,12 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
         {
             if (isArcher)
             {
-                return new Timber_and_Stone.Profession.Human.Archer(unit, getRandomeExperience());
+                return new Timber_and_Stone.Profession.Human.Archer(unit, getRandomExperience());
             }
-            else return new Timber_and_Stone.Profession.Human.Infantry(unit, getRandomeExperience());
+            else return new Timber_and_Stone.Profession.Human.Infantry(unit, getRandomExperience());
         }
 
-        private int getRandomeExperience()
+        private int getRandomExperience()
         {
             return UnityEngine.Random.Range(300, 1500);
         }

@@ -31,7 +31,6 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         private bool isStructuring { get { return controlPlayer.designing && controlPlayer.designType == eDesignType.STRUCTURE; } }
         private bool isSelecting { get { return controlPlayer.selecting; } }
         private bool isDesigning { get { return controlPlayer.designing; } }
-        private bool isPlacingUnitType { get { return isPlacingHuman || isPlacingHuman; } }
 
         private bool isScrolling { get { return Input.GetAxis(Mouse.SCROLL_WHEEL) != 0; } }
 
@@ -47,6 +46,8 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         private bool doSaveGame = false;
         private bool doSmoothTerrain = false;
         private bool doBuildStructures = false;
+        private bool doRemoveEntity = false;
+        private bool doSetPlayerUnitSettings = false;
 
         private bool hasRemovedTrees = true;
         private bool hasBuiltStructures = true;
@@ -54,8 +55,6 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         private bool isMouseInGUIOverride = false;
         private bool isScrollOverride = false;
         
-        private bool isSelectingUnitType { get { return isSelectingHumanType || isSelectingEnemyType || isSelectingAnimalType; } }
-
         private UnitHuman selectedUnitType;
         private bool isSelectingHumanType = false;
         private bool isPlacingHuman = false;
@@ -71,15 +70,18 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         private bool isPlacingAnimal = false;
         private bool doPlaceAnimal = false;
 
+        private bool isSelectingUnitType { get { return isSelectingHumanType || isSelectingEnemyType || isSelectingAnimalType; } }
+        private bool isPlacingUnitType { get { return isPlacingHuman || isPlacingHuman; } }
+        
         private MonoBehaviour selectedObject { get { return worldManager.PlayerFaction.selectedObject; } }
+        private ALivingEntity selectedEntity { get { return isLivingEntitySelected ? selectedObject as ALivingEntity : null; } }
+        private APlayableEntity selectedUnit { get { return isPlayableUnitSelected ? selectedObject as APlayableEntity : null; } }
+
         private bool isObjectSelected { get { return selectedObject != null; } }
         private bool isLivingEntitySelected { get { return isObjectSelected && selectedObject is ALivingEntity; } }
         private bool isPlayableUnitSelected { get { return isObjectSelected && selectedObject is APlayableEntity; } }
-        private ALivingEntity selectedEntity { get { return isLivingEntitySelected ? selectedObject as ALivingEntity : null; } }  
-        private APlayableEntity selectedUnit { get { return isPlayableUnitSelected ? selectedObject as APlayableEntity : null; } }
+
         private int playerFactionUnitCount { get { return worldManager.PlayerFaction.units.Where(u => u.isAlive()).Count(); } }
-        private bool doRemoveEntity = false;
-        private bool doSetPlayerUnitSettings = false;
         
         private bool shiftClickUp = false;
 
@@ -107,13 +109,13 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
             availableBlockTypes = ModUtils.getUnbuildableBlockTypes();
         }
 
-        private bool getBlockAtMouse(out IBlock block)
+        private bool getBlockAtMouse(out IBlock block, bool isAirAllowed = false)
         {
             if (isMouseInWorld(out mouseWorldPosition))
             {
                 block = buildingService.getBlock(mouseWorldPosition);
 
-                if (block.properties.GetType() == typeof(BlockAir))
+                if (!isAirAllowed && block.properties.GetType() == typeof(BlockAir))
                 {
                     block = block.relative(0, -1, 0);
                 }
