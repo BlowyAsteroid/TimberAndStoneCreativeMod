@@ -35,7 +35,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         {
             eventManager.Register(this);
         }
-        
+
         [Timber_and_Stone.API.Event.EventHandler(Priority.Normal)]
         public void onInvasionNormal(EventInvasion evt)
         {
@@ -58,7 +58,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
             UnitPreference.setPreference(evt.unit, UnitPreference.WAIT_IN_HALL_WHILE_IDLE, true);
             UnitPreference.setPreference(evt.unit, UnitPreference.TRAIN_UNDER_LEVEL_3, true);
         }
-        
+
         [Timber_and_Stone.API.Event.EventHandler(Priority.Normal)]
         public void onEntityDeathNormal(EventEntityDeath evt)
         {
@@ -67,7 +67,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
             UnitPreference.setPreference(evt.getUnit(), UnitPreference.IS_PLAYER_UNIT, true);
 
             if (!modSettings.isPeacefulEnabled) return;
-            
+
             evt.result = Result.Deny;
         }
 
@@ -76,7 +76,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         {
             if (evt.result != Result.Deny) return;
 
-            UnitService.reviveUnit(evt.getUnit(), WorldManager.getInstance().PlayerFaction);           
+            UnitService.reviveUnit(evt.getUnit(), WorldManager.getInstance().PlayerFaction);
         }
     }
 }

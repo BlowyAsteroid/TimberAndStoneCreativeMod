@@ -256,6 +256,6 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
             if (entity.fatigue <= .5f) entity.fatigue = 1f;
             if (entity.morale <= .5f) entity.morale = 1f;
             if (entity.hitpoints <= entity.maxHP / 2f) entity.hitpoints = entity.maxHP;            
-        }    
+        }
     }
 }

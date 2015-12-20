@@ -407,7 +407,6 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
         {
             structure.isBuilt = true;
             structure.buildProgress = 100f;
-            structure.health = 100f;
             structure.RenderTextured();
             structure.HideAccessPoints();
             structure.AddBlocks(98);            
