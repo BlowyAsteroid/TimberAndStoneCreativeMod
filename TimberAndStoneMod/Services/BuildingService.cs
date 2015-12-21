@@ -403,13 +403,17 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
             return chunkManager.chunkArray[coordinate.chunk.x, coordinate.chunk.y, coordinate.chunk.z];
         }
         
-        public void buildStructure(ref BuildStructure structure)
+        public void buildStructure(ref BuildStructure structure, IFaction faction)
         {
+            structure.beingBuilt = false;
             structure.isBuilt = true;
             structure.buildProgress = 100f;
             structure.RenderTextured();
             structure.HideAccessPoints();
-            structure.AddBlocks(98);            
+            structure.AddBlocks(98);
+
+            structure.faction = faction;
+            ResourceService.getInstance().addStorageCap(structure);
         }
 
         public void setZLevel(float position)
