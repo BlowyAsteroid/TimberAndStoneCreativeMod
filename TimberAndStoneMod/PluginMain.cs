@@ -1,11 +1,11 @@
-﻿using Plugin.BlowyAsteroid.TimberAndStoneMod.Services;
+﻿using Plugin.BlowyAsteroid.TimberAndStoneMod.Collections;
 using Plugin.BlowyAsteroid.TimberAndStoneMod.Components;
-using Timber_and_Stone.API.Event;
+using Plugin.BlowyAsteroid.TimberAndStoneMod.Services;
 using System;
 using Timber_and_Stone.API;
+using Timber_and_Stone.API.Event;
 using Timber_and_Stone.Event;
 using UnityEngine;
-using Plugin.BlowyAsteroid.TimberAndStoneMod.Collections;
 
 namespace Plugin.BlowyAsteroid.TimberAndStoneMod
 {
@@ -62,7 +62,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         [Timber_and_Stone.API.Event.EventHandler(Priority.Normal)]
         public void onEntityDeathNormal(EventEntityDeath evt)
         {
-            if (!UnitService.isFriendly(evt.getUnit()) && !UnitPreference.getPreference(evt.getUnit(), UnitPreference.IS_PLAYER_UNIT)) return;
+            if (!UnitService.isFriendly(evt.getUnit())) return;
 
             UnitPreference.setPreference(evt.getUnit(), UnitPreference.IS_PLAYER_UNIT, true);
 

@@ -1,6 +1,5 @@
 ﻿using Plugin.BlowyAsteroid.TimberAndStoneMod.Collections;
 using Plugin.BlowyAsteroid.TimberAndStoneMod.Utils;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Timber_and_Stone;
@@ -18,7 +17,10 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 
         public static bool isFriendly(ALivingEntity entity)
         {
-            return (instance.getUnitAlignment(entity) == Alignment.Ally || UnitPreference.getPreference(entity, UnitPreference.IS_PLAYER_UNIT)) && entity is HumanEntity;
+            if (!(entity is HumanEntity)) return false;
+
+            return instance.getUnitAlignment(entity) == Alignment.Ally 
+                || UnitPreference.getPreference(entity, UnitPreference.IS_PLAYER_UNIT);
         }
 
         public static void reviveUnit(ALivingEntity entity, IFaction faction)
@@ -31,7 +33,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 
         public void reviveUnit(ALivingEntity entity)
         {
-            if (UnitPreference.getPreference(entity, UnitPreference.IS_PLAYER_UNIT))
+            if (isFriendly(entity))
             {
                 UnitService.reviveUnit(entity, worldManager.PlayerFaction);
             }

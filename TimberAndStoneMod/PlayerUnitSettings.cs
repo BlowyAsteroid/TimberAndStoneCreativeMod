@@ -1,8 +1,6 @@
 ﻿using Plugin.BlowyAsteroid.TimberAndStoneMod.Collections;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Plugin.BlowyAsteroid.TimberAndStoneMod
 {

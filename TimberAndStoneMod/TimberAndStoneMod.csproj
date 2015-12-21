@@ -48,7 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Components\ModSettingsComponent.cs" />
-    <Compile Include="Collections\ICollectionItem.cs" />
+    <Compile Include="Collections\IUnitCollectionItem.cs" />
     <Compile Include="GUINumberSelect.cs" />
     <Compile Include="GUIPluginComponent.cs" />
     <Compile Include="GUISection.cs" />
