@@ -85,11 +85,12 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         
         private bool shiftClickUp = false;
 
-        private Vector3 mouseWorldPosition = Vector3.zero;
         private IBlock tempBlock;
 
         private GUISection sectionScroll = new GUISection();
         private PlayerUnitSettings playerUnitTraitSettings;
+
+        private Vector3 mouseWorldPosition = Vector3.zero;
 
         public override void OnStart()
         {
@@ -108,22 +109,6 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
             sectionScroll.Flow = GUISection.Overflow.SCROLL;
 
             availableBlockTypes = ModUtils.getUnbuildableBlockTypes();
-        }
-
-        private bool getBlockAtMouse(out IBlock block, bool isAirAllowed = false)
-        {
-            if (isMouseInWorld(out mouseWorldPosition))
-            {
-                block = buildingService.getBlock(mouseWorldPosition);
-
-                if (!isAirAllowed && block.properties.GetType() == typeof(BlockAir))
-                {
-                    block = block.relative(0, -1, 0);
-                }
-            }
-            else block = null;
-
-            return block != null;
         }
 
         public override void OnInput()
@@ -565,20 +550,10 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 
                             if (selectedUnit.isAlive())
                             {
-                                if (sectionMain.NumberSelect("Level: ", selectedUnit.getProfession().getLevel(), out newLevelValue, min: 1, max: AProfession.maxLevel))
+                                if (sectionMain.NumberSelect("Level: ", selectedUnit.getProfession().getLevel(), out newLevelValue, min: 1, max: AProfession.maxLevel, showMinMax: true))
                                 {
                                     selectedUnit.getProfession().setLevel(newLevelValue);
                                 }
-
-                                //if (sectionMain.Button("Max All Professions"))
-                                //{
-                                //    UnitHuman.setAllProfessionsMax(selectedUnit);
-                                //}
-
-                                //if (sectionMain.Button("Best Traits"))
-                                //{
-                                //    UnitTrait.setBestTraits(selectedUnit);
-                                //}
 
                                 sectionMain.LabelCentered("Traits");
                                 sectionScroll.Background(guiManager.windowBoxStyle);
@@ -765,6 +740,22 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 controlPlayer.buildingPillarless = false;
                 controlPlayer.buildingTrimless = false;
             }
+        }
+
+        private bool getBlockAtMouse(out IBlock block, bool isAirAllowed = false)
+        {
+            if (isMouseInWorld(out mouseWorldPosition))
+            {
+                block = BuildingService.getInstance().getBlock(mouseWorldPosition);
+
+                if (!isAirAllowed && block.properties.GetType() == typeof(BlockAir))
+                {
+                    block = block.relative(0, -1, 0);
+                }
+            }
+            else block = null;
+
+            return block != null;
         }
     }
 }

@@ -33,14 +33,14 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
             this.Increment = increment;
         }
 
-        public bool Draw(Rect container)
+        public bool Draw(Rect container, bool showMinMax = false)
         {
-            return this.Draw(container.x, container.y, container.width, container.height);
+            return this.Draw(container.x, container.y, container.width, container.height, showMinMax);
         }
 
         private float tempX, tempWidth;
         private bool isValueChanged;
-        public bool Draw(float x, float y, float width, float height)        
+        public bool Draw(float x, float y, float width, float height, bool showMinMax = false)        
         {
             this.X = x;
             this.Y = y;
@@ -58,14 +58,17 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
                 tempX += tempWidth;
             }
 
-            if (GUI.Button(RectangleUtils.get(tempX, y, BUTTON_SIZE*2, BUTTON_SIZE), "Min", guiManager.skin.button) && this.Value > this.Min)
+            if (showMinMax)
             {
-                this.Value = this.Min;
-                isValueChanged = true;
-            }
+                if (GUI.Button(RectangleUtils.get(tempX, y, BUTTON_SIZE * 2, BUTTON_SIZE), "Min", guiManager.skin.button) && this.Value > this.Min)
+                {
+                    this.Value = this.Min;
+                    isValueChanged = true;
+                }
 
-            tempX += BUTTON_SIZE * 2;
-            tempWidth += BUTTON_SIZE * 4;
+                tempX += BUTTON_SIZE * 2;
+                tempWidth += BUTTON_SIZE * 4;
+            }
 
             if (GUI.Button(RectangleUtils.get(tempX, y, BUTTON_SIZE), "-", guiManager.skin.button) && this.Value > this.Min)
             {
@@ -87,10 +90,13 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
 
             tempX += BUTTON_SIZE;
 
-            if (GUI.Button(RectangleUtils.get(tempX, y, BUTTON_SIZE * 2, BUTTON_SIZE), "Max", guiManager.skin.button) && this.Value < this.Max)
+            if (showMinMax)
             {
-                this.Value = this.Max;
-                isValueChanged = true;
+                if (GUI.Button(RectangleUtils.get(tempX, y, BUTTON_SIZE * 2, BUTTON_SIZE), "Max", guiManager.skin.button) && this.Value < this.Max)
+                {
+                    this.Value = this.Max;
+                    isValueChanged = true;
+                }
             }
 
             return isValueChanged;

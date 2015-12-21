@@ -191,7 +191,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         }
 
         private GUINumberSelect numberSelect = new GUINumberSelect();
-        public bool NumberSelect(String label, float value, out float newValue, float min = 0, float max = 100, float increment = 1f)
+        public bool NumberSelect(String label, float value, out float newValue, float min = 0, float max = 100, float increment = 1f, bool showMinMax = false)
         {
             numberSelect.Name = label;
             numberSelect.Value = value;
@@ -201,7 +201,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
 
             newValue = value;
 
-            if (updateControlIndexes(numberSelect.Draw(this.getControlRect())))
+            if (updateControlIndexes(numberSelect.Draw(this.getControlRect(), showMinMax)))
             {
                 newValue = numberSelect.Value;
                 return true;
