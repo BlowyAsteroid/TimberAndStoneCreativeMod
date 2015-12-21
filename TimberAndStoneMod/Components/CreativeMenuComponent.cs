@@ -86,11 +86,10 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         private bool shiftClickUp = false;
 
         private IBlock tempBlock;
+        private PlayerUnitSettings playerUnitTraitSettings;
+        private Vector3 mouseWorldPosition = Vector3.zero;
 
         private GUISection sectionScroll = new GUISection();
-        private PlayerUnitSettings playerUnitTraitSettings;
-
-        private Vector3 mouseWorldPosition = Vector3.zero;
 
         public override void OnStart()
         {
@@ -213,7 +212,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 {
                     if (getBlockAtMouse(out tempBlock))
                     {
-                        buildingService.setZLevel(tempBlock.coordinate.absolute.y + 2);
+                        buildingService.setDepthLevel(tempBlock.coordinate.absolute.y + 2);
                     }
                 }
                 

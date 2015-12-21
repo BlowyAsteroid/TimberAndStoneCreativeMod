@@ -354,48 +354,54 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 
             return true;
         }
-
-        private Transform tempFloraTransform;
-        private IBlock tempFloraBlock;
+        
         public void addTree(Coordinate coordinate)
         {
-            if (!isValidAirBlock(tempFloraBlock = getBlock(coordinate)))
-            {
-                coordinate = tempFloraBlock.relative(0, 1, 0).coordinate;
-            }
-
-            tempFloraTransform = ModUtils.createTransform(terrainManager.treeObject);
-            tempFloraTransform.transform.parent = getChunkData(coordinate).chunkObj.transform;
-            tempFloraTransform.position = ModUtils.getSlightlyOffsetY(coordinate.world);
-
-            TreeFlora tempAddTree = tempFloraTransform.GetComponent<TreeFlora>();
-            tempAddTree.blockPos = ModUtils.getSlightlyOffsetY(coordinate.block);
-            tempAddTree.chunkPos = ModUtils.getSlightlyOffsetY(coordinate.chunk);
-            tempAddTree.health = 100f;
-
+            TreeFlora tempAddTree = createFlora<TreeFlora>(coordinate, terrainManager.treeObject);
             terrainManager.AddTree(tempAddTree);
             tempAddTree.Init();
         }       
 
         public void addShrub(Coordinate coordinate)
         {
+            Shrub tempAddShrub = createFlora<Shrub>(coordinate, terrainManager.shrubObject);
+            terrainManager.AddShrub(tempAddShrub);
+            tempAddShrub.Init(false);
+        }
+
+        private T createFlora<T>(Coordinate coordinate, Transform parent) where T : MonoBehaviour
+        {
+            Transform tempFloraTransform;
+            IBlock tempFloraBlock;
+
             if (!isValidAirBlock(tempFloraBlock = getBlock(coordinate)))
             {
                 coordinate = tempFloraBlock.relative(0, 1, 0).coordinate;
             }
 
-            tempFloraTransform = ModUtils.createTransform(terrainManager.shrubObject);
+            tempFloraTransform = ModUtils.createTransform(parent);
             tempFloraTransform.transform.parent = getChunkData(coordinate).chunkObj.transform;
-            tempFloraTransform.position = ModUtils.getSlightlyOffsetY(coordinate.world);
+            tempFloraTransform.position = coordinate.world;
 
-            Shrub tempAddShrub = tempFloraTransform.GetComponent<Shrub>();
-            tempAddShrub.blockPos = ModUtils.getSlightlyOffsetY(coordinate.block);
-            tempAddShrub.chunkPos = ModUtils.getSlightlyOffsetY(coordinate.chunk);
-            tempAddShrub.health = 100f;
-            tempAddShrub.berryCount = 50;
+            T tempFlora = tempFloraTransform.GetComponent<T>();
 
-            terrainManager.AddShrub(tempAddShrub);
-            tempAddShrub.Init(false);
+            if (tempFlora is TreeFlora)
+            {
+                TreeFlora tempTree = tempFlora as TreeFlora;
+                tempTree.blockPos = coordinate.block;
+                tempTree.chunkPos = ModUtils.getSlightlyOffsetY(coordinate.chunk);
+                tempTree.health = 100f;
+            }
+            else if (tempFlora is Shrub)
+            {
+                Shrub tempShrub = tempFlora as Shrub;
+                tempShrub.blockPos = coordinate.block;
+                tempShrub.chunkPos = ModUtils.getSlightlyOffsetY(coordinate.chunk);
+                tempShrub.health = 100f;
+                tempShrub.berryCount = 100;
+            }
+            
+            return tempFlora;
         }
 
         private ChunkData getChunkData(Coordinate coordinate)
@@ -416,7 +422,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
             ResourceService.getInstance().addStorageCap(structure);
         }
 
-        public void setZLevel(float position)
+        public void setDepthLevel(float position)
         {
             if (position > 0 && position < chunkManager.worldSize.y)
             {
