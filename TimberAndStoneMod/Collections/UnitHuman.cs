@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Timber_and_Stone;
 
-namespace Plugin.BlowyAsteroid.Collections.TimberAndStoneMod
+namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Collections
 {
-    public sealed class UnitHuman : IModCollectionItem
+    public sealed class UnitHuman : IUnitCollectionItem
     {
         public static readonly UnitHuman All = new UnitHuman("All");
         public static readonly UnitHuman Crafter = new UnitHuman("Crafter");

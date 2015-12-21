@@ -1,4 +1,4 @@
-﻿using Plugin.BlowyAsteroid.Collections.TimberAndStoneMod;
+﻿using Plugin.BlowyAsteroid.TimberAndStoneMod.Collections;
 using Timber_and_Stone;
 using Timber_and_Stone.Profession.Human;
 

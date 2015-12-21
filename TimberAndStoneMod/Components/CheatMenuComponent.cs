@@ -1,4 +1,4 @@
-﻿using Plugin.BlowyAsteroid.Collections.TimberAndStoneMod;
+﻿using Plugin.BlowyAsteroid.TimberAndStoneMod.Collections;
 using Plugin.BlowyAsteroid.TimberAndStoneMod.Services;
 using System;
 using Timber_and_Stone;
@@ -89,9 +89,9 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 
             if (sectionMain.hasChildren)
             {
-                this.containerHeight = sectionMain.controlYPosition + sectionMain.ControlMargin;
+                this.containerHeight = sectionMain.ControlYPosition + sectionMain.ControlMargin;
             }
-            else this.containerHeight = sectionMain.controlYPosition;
+            else this.containerHeight = sectionMain.ControlYPosition;
         } 
         
         public override void OnUpdate()

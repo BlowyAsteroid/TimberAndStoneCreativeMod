@@ -8,7 +8,7 @@ using Timber_and_Stone.BlockData;
 using Timber_and_Stone.Blocks;
 using UnityEngine;
 
-namespace Plugin.BlowyAsteroid.Utils
+namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Utils
 {
     public static class ModUtils
     {

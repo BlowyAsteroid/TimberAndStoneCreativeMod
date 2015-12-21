@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace Plugin.BlowyAsteroid.Collections.TimberAndStoneMod
+namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Collections
 {
     public sealed class UnitEnemy
     {

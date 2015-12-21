@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Plugin.BlowyAsteroid.Collections.TimberAndStoneMod
+namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Collections
 {
-    public sealed class UnitAnimal : IModCollectionItem
+    public sealed class UnitAnimal : IUnitCollectionItem
     {
         public static readonly UnitAnimal Boar = new UnitAnimal("Boar");
         public static readonly UnitAnimal Sheep = new UnitAnimal("Sheep");

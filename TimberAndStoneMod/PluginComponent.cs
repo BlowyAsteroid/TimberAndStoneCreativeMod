@@ -5,7 +5,7 @@ using System.Text;
 using System.Timers;
 using UnityEngine;
 
-namespace Plugin.BlowyAsteroid
+namespace Plugin.BlowyAsteroid.TimberAndStoneMod
 {
     public abstract class PluginComponent : MonoBehaviour
     {

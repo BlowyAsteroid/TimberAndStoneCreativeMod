@@ -1,6 +1,6 @@
-﻿using Plugin.BlowyAsteroid.Collections.TimberAndStoneMod;
+﻿using Plugin.BlowyAsteroid.TimberAndStoneMod.Collections;
 using Plugin.BlowyAsteroid.TimberAndStoneMod.Services;
-using Plugin.BlowyAsteroid.Utils;
+using Plugin.BlowyAsteroid.TimberAndStoneMod.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -484,8 +484,9 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                     updatePlayerUnitSettings(ref playerUnitTraitSettings, selectedUnit, UnitTrait.List);
                 }
             }
-        }   
+        }
 
+        private float newLevelValue;
         public override void OnDraw(int windowId)
         {
             Window(this.title);
@@ -501,30 +502,30 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 {
                     if (isSelectingHumanType && !isPlacingHuman)
                     {
-                        sectionMain.Label("Player Units");
+                        sectionMain.LabelCentered("Player Units");
                     }
                     else if (isSelectingEnemyType && !isPlacingEnemy)
                     {
-                        sectionMain.Label("Enemy Units");
+                        sectionMain.LabelCentered("Enemy Units");
                     }
                     else if (isSelectingAnimalType && !isPlacingAnimal)
                     {
-                        sectionMain.Label("Animal Units");
+                        sectionMain.LabelCentered("Animal Units");
                     }
                     else if (isPlacingHuman)
                     {
-                        sectionMain.Label(selectedUnitType.Name);
-                        sectionMain.Label(getKeyString(PRIMARY_KEY) + " To Place");
+                        sectionMain.LabelCentered(selectedUnitType.Name);
+                        sectionMain.LabelCentered(getKeyString(PRIMARY_KEY) + " To Place");
                     }
                     else if (isPlacingEnemy)
                     {
-                        sectionMain.Label("Enemy: " + selectedEnemyType.Name);
-                        sectionMain.Label(getKeyString(PRIMARY_KEY) + " To Place");
+                        sectionMain.LabelCentered("Enemy: " + selectedEnemyType.Name);
+                        sectionMain.LabelCentered(getKeyString(PRIMARY_KEY) + " To Place");
                     }
                     else if (isPlacingAnimal)
                     {
-                        sectionMain.Label("Animal: " + selectedAnimalType.Name);
-                        sectionMain.Label(getKeyString(PRIMARY_KEY) + " To Place");
+                        sectionMain.LabelCentered("Animal: " + selectedAnimalType.Name);
+                        sectionMain.LabelCentered(getKeyString(PRIMARY_KEY) + " To Place");
                     }
                     else if (isBuilding)
                     {
@@ -532,68 +533,58 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                         {
                             if (Input.GetKey(PRIMARY_KEY))
                             {
-                                sectionMain.Label("Replacing");
+                                sectionMain.LabelCentered("Replacing");
                             }
                             else if (Input.GetKey(PICK_BLOCK_KEY))
                             {
-                                sectionMain.Label("Smoothing");
+                                sectionMain.LabelCentered("Smoothing");
                             }
                             else
                             {
-                                sectionMain.Label("Hold " + getKeyString(PRIMARY_KEY) + " to Replace");
-                                sectionMain.Label("Hold " + getKeyString(PICK_BLOCK_KEY) + " to Smooth");
+                                sectionMain.LabelCentered("Hold " + getKeyString(PRIMARY_KEY) + " to Replace");
+                                sectionMain.LabelCentered("Hold " + getKeyString(PICK_BLOCK_KEY) + " to Smooth");
                             }
                         }
                         else if (isDesigning)
                         {
-                            sectionMain.Label(controlPlayer.buildingMaterial.getName());
+                            sectionMain.LabelCentered(controlPlayer.buildingMaterial.getName());
                         }
                     }
                     else if (isChopping)
                     {
-                        sectionMain.Label(getKeyString(PRIMARY_KEY) + " Place Tree");
-                        sectionMain.Label(getKeyString(PICK_BLOCK_KEY) + " Place Shrub");
+                        sectionMain.LabelCentered(getKeyString(PRIMARY_KEY) + " Place Tree");
+                        sectionMain.LabelCentered(getKeyString(PICK_BLOCK_KEY) + " Place Shrub");
                         sectionMain.Button("Remove All Trees", ref doRemoveAllTrees);
                     }
                     else if (isLivingEntitySelected)
                     {
-                        sectionMain.Label(selectedEntity.unitName);
-
-                        if (isPlayableUnitSelected)
+                        if (isPlayableUnitSelected && selectedUnit.isAlive() && UnitService.isFriendly(selectedEntity))
                         {
-                            if (selectedUnit.isAlive() && UnitService.isFriendly(selectedEntity))
+                            sectionMain.LabelCentered(selectedUnit.getProfession().getProfessionName());
+
+                            if (sectionMain.NumberSelect("Level: ", selectedUnit.getProfession().getLevel(), out newLevelValue, min: 1, max: AProfession.maxLevel))
                             {
-                                sectionMain.Label("Lvl." + selectedUnit.getProfession().getLevel() + " " + selectedUnit.getProfession().getProfessionName());
-
-                                if (sectionMain.Button("Max Current Profession"))
-                                {
-                                    UnitHuman.setCurrentProfessionMax(selectedUnit);
-                                }
-
-                                if (sectionMain.Button("Best Traits"))
-                                {
-                                    UnitTrait.setBestTraits(selectedUnit);
-                                }
+                                selectedUnit.getProfession().setLevel(newLevelValue);
                             }
-                        }
 
-                        if (!selectedEntity.isAlive())
+                            if (sectionMain.Button("Max All Professions"))
+                            {
+                                UnitHuman.setAllProfessionsMax(selectedUnit);
+                            }
+
+                            if (sectionMain.Button("Best Traits"))
+                            {
+                                UnitTrait.setBestTraits(selectedUnit);
+                            }
+
+                            sectionMain.LabelCentered("Traits");
+                            sectionScroll.Background(guiManager.windowBoxStyle);
+                        }
+                        else
                         {
-                            if (sectionMain.Button("Revive Unit"))
-                            {
-                                unitService.reviveUnit(selectedEntity);
-                            }
+                            sectionMain.LabelCentered(selectedEntity.unitName);
+                            drawSelectedUnitButtons();
                         }
-                        else if (selectedEntity.isAlive() && (UnitService.isFriendly(selectedEntity)
-                            ? (!modSettings.isPeacefulEnabled && playerFactionUnitCount > 1) : true))
-                        {
-                            if (sectionMain.Button("Kill Unit"))
-                            {
-                                selectedEntity.hitpoints = 0f;
-                            }
-                        }
-
-                        sectionMain.Button("Remove Unit", ref doRemoveEntity);
                     }
                     else if (!isSelecting && !isDesigning && !isSelectingUnitType)
                     {
@@ -631,17 +622,17 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 }
             }
 
-            sectionScroll.Begin(0, sectionMain.controlYPosition, this.ParentContainer.width, 300f);
+            sectionScroll.Begin(0, sectionMain.ControlYPosition - sectionScroll.ControlMargin, this.ParentContainer.width, sectionMain.ControlHeight * 10);
 
             if (isMouseHover || isDesigning || isSelectingUnitType || isLivingEntitySelected)
             {
                 if (modSettings.isCreativeEnabled)
                 {
-                    if (isPlayableUnitSelected && selectedUnit.isAlive())
-                    {
-                        if (UnitService.isFriendly(selectedUnit))
+                    if (isPlayableUnitSelected && UnitService.isFriendly(selectedUnit))
+                    {                        
+                        if (selectedUnit.isAlive())
                         {
-                            foreach (IModCollectionItem item in UnitTrait.List)
+                            foreach (IUnitCollectionItem item in UnitTrait.List)
                             {
                                 sectionScroll.CheckBox(item.Description, ref playerUnitTraitSettings.getSetting(item).Enabled, ref doSetPlayerUnitSettings);
                             }
@@ -700,29 +691,51 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
             }
 
             sectionScroll.End();
+
+            if (sectionScroll.hasChildren)
+            {
+                sectionMain.addSection(sectionScroll);
+            }
+
+            if (isMouseHover || isDesigning || isSelectingUnitType || isLivingEntitySelected)
+            {
+                if (modSettings.isCreativeEnabled)
+                {
+                    if (isPlayableUnitSelected && UnitService.isFriendly(selectedUnit))
+                    {
+                        drawSelectedUnitButtons();
+                    }
+                }
+            }
+
             sectionMain.End();
 
-            if (sectionMain.hasChildren && sectionScroll.hasChildren)
+            if (sectionMain.hasChildren)
             {
-                if (sectionScroll.isScrolling)
+                this.containerHeight = sectionMain.ControlYPosition + sectionMain.ControlMargin;
+            }
+            else this.containerHeight = sectionMain.ControlYPosition;
+        }
+
+        private void drawSelectedUnitButtons()
+        {
+            if (!selectedEntity.isAlive())
+            {
+                if (sectionMain.Button("Revive Unit"))
                 {
-                    this.containerHeight = sectionMain.controlYPosition + sectionScroll.Height + sectionScroll.ControlMargin * 2;
+                    unitService.reviveUnit(selectedEntity);
                 }
-                else this.containerHeight = sectionScroll.controlYPosition + sectionScroll.ControlMargin;
             }
-            else if (sectionScroll.hasChildren)
+            else if ((UnitService.isFriendly(selectedEntity)
+                ? (!modSettings.isPeacefulEnabled && playerFactionUnitCount > 1) : true))
             {
-                if (sectionScroll.isScrolling)
+                if (sectionMain.Button("Kill Unit"))
                 {
-                    this.containerHeight = sectionScroll.Y + sectionScroll.Height + sectionScroll.ControlMargin;
+                    selectedEntity.hitpoints = 0f;
                 }
-                else this.containerHeight = sectionScroll.controlYPosition + sectionScroll.ControlMargin;
             }
-            else if (sectionMain.hasChildren)
-            {
-                this.containerHeight = sectionMain.controlYPosition + sectionMain.ControlMargin;
-            }
-            else this.containerHeight = sectionMain.controlYPosition;
+
+            sectionMain.Button("Remove Unit", ref doRemoveEntity);
         }
 
         private String getKeyString(KeyCode key)
@@ -751,18 +764,18 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         }
 
         private PlayerUnitSettings playerUnitTraitSettings;
-        private void drawPlayerUnitSettings(PlayerUnitSettings playerUnitSettings, APlayableEntity entity, IModCollectionItem[] collection, ref bool onClick)
+        private void drawPlayerUnitSettings(PlayerUnitSettings playerUnitSettings, APlayableEntity entity, IUnitCollectionItem[] collection, ref bool onClick)
         {
             if (collection != null && UnitService.isFriendly(entity))
             {
-                foreach (IModCollectionItem item in collection)
+                foreach (IUnitCollectionItem item in collection)
                 {
                     sectionScroll.CheckBox(item.Description, ref playerUnitSettings.getSetting(item).Enabled, ref onClick);
                 }
             }
         }
 
-        private void updatePlayerUnitSettings(ref PlayerUnitSettings playerUnitSettings, APlayableEntity entity, IModCollectionItem[] collection)
+        private void updatePlayerUnitSettings(ref PlayerUnitSettings playerUnitSettings, APlayableEntity entity, IUnitCollectionItem[] collection)
         {
             if (UnitPreference.isPlayableEntity(entity))
             {
@@ -774,11 +787,11 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
             }
         }
 
-        private void setPlayerUnitSettings(PlayerUnitSettings playerUnitSettings, APlayableEntity entity, IModCollectionItem[] collection)
+        private void setPlayerUnitSettings(PlayerUnitSettings playerUnitSettings, APlayableEntity entity, IUnitCollectionItem[] collection)
         {
             if (playerUnitSettings != null)
             {
-                foreach (IModCollectionItem item in collection)
+                foreach (IUnitCollectionItem item in collection)
                 {
                     UnitPreference.setPreference(entity, item.Name, playerUnitSettings.getSetting(item).Enabled);
                 }

@@ -1,14 +1,15 @@
-﻿using Plugin.BlowyAsteroid.Utils;
+﻿using Plugin.BlowyAsteroid.TimberAndStoneMod.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace Plugin.BlowyAsteroid
+namespace Plugin.BlowyAsteroid.TimberAndStoneMod
 {
     public class GUISection
     {
+        public enum TextColor { BLACK, WHITE }
         public enum FlowDirection { VERTICAL, HORIZONTAL }
         public enum Overflow { HIDDEN, SCROLL, WRAP }
         
@@ -30,6 +31,8 @@ namespace Plugin.BlowyAsteroid
 
         public bool isHasBegun { get; private set; }
         public bool isScrolling { get; private set; }
+        
+        public bool hasChildren { get { return this.currentXIndex > 0 || this.currentYIndex > 0; } }
 
         private int currentXIndex { get; set; }
         private int currentYIndex { get; set; }
@@ -63,50 +66,148 @@ namespace Plugin.BlowyAsteroid
             if (this.Flow == Overflow.SCROLL || this.Flow == Overflow.WRAP)
             {
                 if (!this.isHasBegun)
-                {                    
-                    this.scrollContainer.Set(this.X, this.Y, this.Width, this.Height);
+                {
+                    this.ResetScrollContainer();
                 }
 
                 this.scrollViewContainer.Set(this.X, this.Y, this.Width, this.Height);
                 scrollPosition = GUI.BeginScrollView(scrollViewContainer, scrollPosition, scrollContainer);
             }
-            
+
             this.isScrolling = false;
             this.isHasBegun = true;
         }
 
+        public void ResetScrollContainer()
+        {
+            this.currentXIndex = 0;
+            this.currentYIndex = 0;
+            this.scrollContainer.Set(this.X, this.Y, this.Width, this.Height);
+            this.scrollPosition = Vector2.zero;
+        }
+
         public void End()
         {
-            if (this.Flow == Overflow.SCROLL || this.Flow == Overflow.WRAP)
+            if (this.isHasBegun)
             {
-                GUI.EndScrollView();
+                if (this.Flow == Overflow.SCROLL || this.Flow == Overflow.WRAP)
+                {
+                    if (!this.isScrolling)
+                    {
+                        switch (this.Direction)
+                        {
+                            case FlowDirection.HORIZONTAL:
+                                this.Width = this.ControlXPosition - this.X;
+                                break;
+
+                            case FlowDirection.VERTICAL:
+                                this.Height = this.ControlYPosition - this.Y;
+                                break;
+                        }
+                    }
+
+                    if (!this.hasChildren)
+                    {
+                        this.ResetScrollContainer();
+                    }
+
+                    GUI.EndScrollView();
+                }
             }
         }
 
-        public void Label(String text)
+        public void Background(GUIStyle style)
         {
-            guiManager.DrawTextCenteredWhite(this.ControlPosition, text);
+            GUI.Box(RectangleUtils.get(this.X, this.Y, this.Width, this.Height, this.ControlPadding), String.Empty, style);
+        }
+
+        public void LabelCentered(String text, TextColor color = TextColor.WHITE)
+        {
+            switch (color)
+            {
+                case TextColor.WHITE:
+                    guiManager.DrawTextCenteredWhite(this.getControlRect(), text);
+                    break;
+                    
+                case TextColor.BLACK:
+                    guiManager.DrawTextCenteredBlack(this.getControlRect(), text);
+                    break;
+            }
+            
+            updateControlIndexes();
+        }
+
+        public void LabelLeft(String text, TextColor color = TextColor.WHITE)
+        {
+            switch (color)
+            {
+                case TextColor.WHITE:
+                    guiManager.DrawTextLeftWhite(this.getControlRect(), text);
+                    break;
+
+                case TextColor.BLACK:
+                    guiManager.DrawTextLeftBlack(this.getControlRect(), text);
+                    break;
+            }
+            
             updateControlIndexes();
         }
 
         public bool Button(String text)
         {
-            return updateControlIndexes(guiManager.DrawButton(this.ControlPosition, text));
+            return updateControlIndexes(guiManager.DrawButton(this.getControlRect(), text));
         }
 
         public bool Button(String text, ref bool doOnClick)
         {
-            return updateControlIndexes(guiManager.DrawButton(this.ControlPosition, text) ? (doOnClick = true) : doOnClick);            
+            return updateControlIndexes(guiManager.DrawButton(this.getControlRect(), text) ? (doOnClick = true) : doOnClick);            
         }
 
         public bool CheckBox(String text, ref bool toggled)
         {
-            return updateControlIndexes(guiManager.DrawCheckBox(this.ControlPosition, text, ref toggled));            
+            return updateControlIndexes(guiManager.DrawCheckBox(this.getControlRect(), text, ref toggled));            
         }
 
         public bool CheckBox(String text, ref bool toggled, ref bool doOnClick)
         {
-            return updateControlIndexes(guiManager.DrawCheckBox(this.ControlPosition, text, ref toggled) ? (doOnClick = true) : doOnClick);
+            return updateControlIndexes(guiManager.DrawCheckBox(this.getControlRect(), text, ref toggled) ? (doOnClick = true) : doOnClick);
+        }
+
+        private float tempFloatValue;
+        public void addSection(GUISection section)
+        {
+            if (this.Direction == FlowDirection.VERTICAL)
+            {
+                tempFloatValue = this.ControlYPosition;
+                while (this.ControlYPosition < tempFloatValue + section.Height) this.currentYIndex++;
+                this.Y += this.ControlPadding;
+            }
+            else if (this.Direction == FlowDirection.HORIZONTAL)
+            {
+                tempFloatValue = this.ControlXPosition;
+                while (this.ControlXPosition < tempFloatValue + section.Width) this.currentXIndex++;
+                this.X += this.ControlPadding;
+            }
+        }
+
+        private GUINumberSelect numberSelect = new GUINumberSelect();
+        public bool NumberSelect(String label, float value, out float newValue, float min = 0, float max = 100, float increment = 1f)
+        {
+            numberSelect.Name = label;
+            numberSelect.Value = value;
+            numberSelect.Min = min;
+            numberSelect.Max = max;
+            numberSelect.Increment = increment;
+
+            newValue = value;
+
+            if (updateControlIndexes(numberSelect.Draw(this.getControlRect())))
+            {
+                newValue = numberSelect.Value;
+                return true;
+            }
+               
+            return false;           
         }
 
         private void updateScrollContainer(float width, float height)
@@ -116,37 +217,35 @@ namespace Plugin.BlowyAsteroid
 
         private bool updateControlIndexes(bool flag = false)
         {
-            this.isScrolling = false;
-
             if (this.Direction == FlowDirection.VERTICAL)
             {
                 this.currentYIndex++;
-               
+
                 switch (this.Flow)
                 {
                     case Overflow.WRAP:
-                        if (this.controlYPosition + this.ControlHeight > this.Y + this.Height)
+                        if (this.ControlYPosition + this.ControlHeight > this.Y + this.Height)
                         {
                             this.currentYIndex = 0;
                             this.currentXIndex++;
 
-                            if (this.controlXPosition + this.ControlWidth > this.Width)
+                            if (this.ControlXPosition + this.ControlWidth > this.Width)
                             {
                                 this.isScrolling = true;     
                             }
 
-                            updateScrollContainer(this.controlXPosition - this.X, this.scrollViewContainer.height - SCROLL_BAR_SIZE);
+                            updateScrollContainer(this.ControlXPosition - this.X, this.scrollViewContainer.height - SCROLL_BAR_SIZE);
                         }
 
                         break;
 
                     case Overflow.SCROLL:
-                        if (this.controlYPosition > this.Y + this.Height)
+                        if (this.ControlYPosition > this.Y + this.Height)
                         {
                             this.isScrolling = true;                                
                         }
 
-                        updateScrollContainer(this.scrollViewContainer.width - SCROLL_BAR_SIZE, this.controlYPosition - this.Y);
+                        updateScrollContainer(this.scrollViewContainer.width - SCROLL_BAR_SIZE, this.ControlYPosition - this.Y);
 
                         break;
                 }
@@ -155,32 +254,32 @@ namespace Plugin.BlowyAsteroid
             else if (this.Direction == FlowDirection.HORIZONTAL)
             {
                 this.currentXIndex++;
-                
+
                 switch (this.Flow)
                 {
                     case Overflow.WRAP:
-                        if (this.controlXPosition + this.ControlWidth > this.X + this.Width)
+                        if (this.ControlXPosition + this.ControlWidth > this.X + this.Width)
                         {
                             this.currentXIndex = 0;
                             this.currentYIndex++;
 
-                            if (this.controlYPosition + this.ControlHeight > this.Height)
+                            if (this.ControlYPosition + this.ControlHeight > this.Height)
                             {
                                 this.isScrolling = true;
                             }
 
-                            updateScrollContainer(this.scrollViewContainer.width - SCROLL_BAR_SIZE, this.controlYPosition - this.Y);
+                            updateScrollContainer(this.scrollViewContainer.width - SCROLL_BAR_SIZE, this.ControlYPosition - this.Y);
                         }
 
                         break;
 
                     case Overflow.SCROLL:
-                        if (this.controlXPosition > this.X + this.Width)
+                        if (this.ControlXPosition > this.X + this.Width)
                         {
                             this.isScrolling = true;
                         }
 
-                        updateScrollContainer(this.controlXPosition - this.X, this.scrollViewContainer.height - SCROLL_BAR_SIZE);
+                        updateScrollContainer(this.ControlXPosition - this.X, this.scrollViewContainer.height - SCROLL_BAR_SIZE);
 
                         break;
                 }  
@@ -188,32 +287,20 @@ namespace Plugin.BlowyAsteroid
 
             return flag;
         }
-
-        public float controlYPosition
+        
+        public float ControlYPosition
         {
             get { return this.Y + this.currentYIndex * (this.ControlHeight + this.ControlPadding); }
         }
 
-        public float controlXPosition
+        public float ControlXPosition
         {
-            get { return this.X + this.currentXIndex * (this.ControlWidth + this.ControlPadding); }
+            get { return this.X + this.currentXIndex * (this.ControlWidth + this.ControlPadding);}
         }
 
-        public Rect ControlPosition 
-        { 
-            get { return RectangleUtils.get(this.controlXPosition, this.controlYPosition, this.ControlWidth, this.ControlHeight); } 
-        }
-
-        public float nextControlYPosition
+        private Rect getControlRect() 
         {
-            get { return this.Y + (this.currentYIndex + 1) * (this.ControlHeight + this.ControlPadding); }
+            return RectangleUtils.get(this.ControlXPosition, this.ControlYPosition, this.ControlWidth, this.ControlHeight); 
         }
-
-        public float nextControlXPosition
-        {
-            get { return this.X + (this.currentXIndex + 1) * (this.ControlWidth + this.ControlPadding); }
-        }
-
-        public bool hasChildren { get { return this.currentXIndex > 0 || this.currentYIndex > 0; } }
     }
 }

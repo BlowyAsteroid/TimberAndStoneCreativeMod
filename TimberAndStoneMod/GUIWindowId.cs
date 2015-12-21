@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Plugin.BlowyAsteroid
+namespace Plugin.BlowyAsteroid.TimberAndStoneMod
 {
     public sealed class GUIWindowId
     {

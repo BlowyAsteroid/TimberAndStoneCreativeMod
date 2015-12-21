@@ -1,5 +1,5 @@
-﻿using Plugin.BlowyAsteroid.Collections.TimberAndStoneMod;
-using Plugin.BlowyAsteroid.Utils;
+﻿using Plugin.BlowyAsteroid.TimberAndStoneMod.Collections;
+using Plugin.BlowyAsteroid.TimberAndStoneMod.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;

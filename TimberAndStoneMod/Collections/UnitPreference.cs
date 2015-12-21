@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Plugin.BlowyAsteroid.Collections.TimberAndStoneMod
+namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Collections
 {
-    public sealed class UnitPreference : IModCollectionItem
+    public sealed class UnitPreference : IUnitCollectionItem
     {
         public const String IS_PLAYER_UNIT = "blowy.playerunit";
 

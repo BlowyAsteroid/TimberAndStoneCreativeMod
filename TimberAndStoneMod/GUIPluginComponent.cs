@@ -1,11 +1,11 @@
-﻿using Plugin.BlowyAsteroid.Utils;
+﻿using Plugin.BlowyAsteroid.TimberAndStoneMod.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace Plugin.BlowyAsteroid
+namespace Plugin.BlowyAsteroid.TimberAndStoneMod
 {
     public abstract class GUIPluginComponent : PluginComponent
     {

@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Plugin.BlowyAsteroid.Collections.TimberAndStoneMod
+namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Collections
 {
     public enum UnitTraitType { GOOD, BAD }
 
-    public sealed class UnitTrait : IModCollectionItem
+    public sealed class UnitTrait : IUnitCollectionItem
     {
         public static readonly UnitTrait Athletic = new UnitTrait("trait.athletic", UnitTraitType.GOOD, "Athletic");
         public static readonly UnitTrait Charismatic = new UnitTrait("trait.charismatic", UnitTraitType.GOOD, "Charismatic");

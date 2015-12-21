@@ -5,7 +5,7 @@ using System;
 using Timber_and_Stone.API;
 using Timber_and_Stone.Event;
 using UnityEngine;
-using Plugin.BlowyAsteroid.Collections.TimberAndStoneMod;
+using Plugin.BlowyAsteroid.TimberAndStoneMod.Collections;
 
 namespace Plugin.BlowyAsteroid.TimberAndStoneMod
 {

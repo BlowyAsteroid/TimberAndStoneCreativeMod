@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Plugin.BlowyAsteroid.Collections.TimberAndStoneMod
+namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Collections
 {
-    public interface IModCollectionItem
+    public interface IUnitCollectionItem
     {
         String Name { get; }
         String Description { get; }
