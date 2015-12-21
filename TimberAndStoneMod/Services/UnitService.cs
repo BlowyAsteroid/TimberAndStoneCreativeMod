@@ -18,7 +18,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 
         public static bool isFriendly(ALivingEntity entity)
         {
-            return instance.getUnitAlignment(entity) == Alignment.Ally && entity is HumanEntity;
+            return (instance.getUnitAlignment(entity) == Alignment.Ally || UnitPreference.getPreference(entity, UnitPreference.IS_PLAYER_UNIT)) && entity is HumanEntity;
         }
 
         public static void reviveUnit(ALivingEntity entity, IFaction faction)

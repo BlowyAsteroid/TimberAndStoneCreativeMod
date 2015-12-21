@@ -558,27 +558,30 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                     }
                     else if (isLivingEntitySelected)
                     {
-                        if (isPlayableUnitSelected && selectedUnit.isAlive() && UnitService.isFriendly(selectedEntity))
+                        if (isPlayableUnitSelected && UnitService.isFriendly(selectedEntity))
                         {
                             sectionMain.LabelCentered(selectedUnit.getProfession().getProfessionName());
 
-                            if (sectionMain.NumberSelect("Level: ", selectedUnit.getProfession().getLevel(), out newLevelValue, min: 1, max: AProfession.maxLevel))
+                            if (selectedUnit.isAlive())
                             {
-                                selectedUnit.getProfession().setLevel(newLevelValue);
-                            }
+                                if (sectionMain.NumberSelect("Level: ", selectedUnit.getProfession().getLevel(), out newLevelValue, min: 1, max: AProfession.maxLevel))
+                                {
+                                    selectedUnit.getProfession().setLevel(newLevelValue);
+                                }
 
-                            if (sectionMain.Button("Max All Professions"))
-                            {
-                                UnitHuman.setAllProfessionsMax(selectedUnit);
-                            }
+                                if (sectionMain.Button("Max All Professions"))
+                                {
+                                    UnitHuman.setAllProfessionsMax(selectedUnit);
+                                }
 
-                            if (sectionMain.Button("Best Traits"))
-                            {
-                                UnitTrait.setBestTraits(selectedUnit);
-                            }
+                                if (sectionMain.Button("Best Traits"))
+                                {
+                                    UnitTrait.setBestTraits(selectedUnit);
+                                }
 
-                            sectionMain.LabelCentered("Traits");
-                            sectionScroll.Background(guiManager.windowBoxStyle);
+                                sectionMain.LabelCentered("Traits");
+                                sectionScroll.Background(guiManager.windowBoxStyle);
+                            }
                         }
                         else
                         {
