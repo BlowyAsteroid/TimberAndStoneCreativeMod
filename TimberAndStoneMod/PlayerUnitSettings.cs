@@ -49,5 +49,28 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
             public IUnitCollectionItem Item { get; set; }
             public bool Enabled;
         }
+
+        public static void updatePlayerUnitSettings(ref PlayerUnitSettings playerUnitSettings, APlayableEntity entity, IUnitCollectionItem[] collection)
+        {
+            if (UnitPreference.isPlayableEntity(entity))
+            {
+                playerUnitSettings = PlayerUnitSettings.fromEntity(entity, collection);
+            }
+            else
+            {
+                playerUnitSettings = null;
+            }
+        }
+
+        public static void setPlayerUnitSettings(PlayerUnitSettings playerUnitSettings, APlayableEntity entity, IUnitCollectionItem[] collection)
+        {
+            if (playerUnitSettings != null)
+            {
+                foreach (IUnitCollectionItem item in collection)
+                {
+                    UnitPreference.setPreference(entity, item.Name, playerUnitSettings.getSetting(item).Enabled);
+                }
+            }
+        }
     }
 }

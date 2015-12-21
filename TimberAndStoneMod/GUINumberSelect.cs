@@ -58,7 +58,16 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
                 tempX += tempWidth;
             }
 
-            if (GUI.Button(RectangleUtils.get(tempX, y, BUTTON_SIZE), String.Empty, guiManager.minusButtonStyle) && this.Value > this.Min)
+            if (GUI.Button(RectangleUtils.get(tempX, y, BUTTON_SIZE*2, BUTTON_SIZE), "Min", guiManager.skin.button) && this.Value > this.Min)
+            {
+                this.Value = this.Min;
+                isValueChanged = true;
+            }
+
+            tempX += BUTTON_SIZE * 2;
+            tempWidth += BUTTON_SIZE * 4;
+
+            if (GUI.Button(RectangleUtils.get(tempX, y, BUTTON_SIZE), "-", guiManager.skin.button) && this.Value > this.Min)
             {
                 this.Value--;
                 isValueChanged = true;
@@ -70,9 +79,17 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
             guiManager.DrawTextCenteredBlack(RectangleUtils.get(tempX, y, tempWidth), this.Value.ToString());
             tempX += tempWidth;
 
-            if (GUI.Button(RectangleUtils.get(tempX, y, BUTTON_SIZE), String.Empty, guiManager.plusButtonStyle) && this.Value < this.Max)
+            if (GUI.Button(RectangleUtils.get(tempX, y, BUTTON_SIZE), "+", guiManager.skin.button) && this.Value < this.Max)
             {
                 this.Value++;
+                isValueChanged = true;
+            }
+
+            tempX += BUTTON_SIZE;
+
+            if (GUI.Button(RectangleUtils.get(tempX, y, BUTTON_SIZE * 2, BUTTON_SIZE), "Max", guiManager.skin.button) && this.Value < this.Max)
+            {
+                this.Value = this.Max;
                 isValueChanged = true;
             }
 

@@ -89,6 +89,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         private IBlock tempBlock;
 
         private GUISection sectionScroll = new GUISection();
+        private PlayerUnitSettings playerUnitTraitSettings;
 
         public override void OnStart()
         {
@@ -465,7 +466,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 
                     if (isPlayableUnitSelected)
                     {
-                        setPlayerUnitSettings(playerUnitTraitSettings, selectedUnit, UnitTrait.List);
+                        PlayerUnitSettings.setPlayerUnitSettings(playerUnitTraitSettings, selectedUnit, UnitTrait.List);
                     }
                 }
                 else if (doSaveGame)
@@ -481,7 +482,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 }
                 else if (isPlayableUnitSelected)
                 {
-                    updatePlayerUnitSettings(ref playerUnitTraitSettings, selectedUnit, UnitTrait.List);
+                    PlayerUnitSettings.updatePlayerUnitSettings(ref playerUnitTraitSettings, selectedUnit, UnitTrait.List);
                 }
             }
         }
@@ -569,15 +570,15 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                                     selectedUnit.getProfession().setLevel(newLevelValue);
                                 }
 
-                                if (sectionMain.Button("Max All Professions"))
-                                {
-                                    UnitHuman.setAllProfessionsMax(selectedUnit);
-                                }
+                                //if (sectionMain.Button("Max All Professions"))
+                                //{
+                                //    UnitHuman.setAllProfessionsMax(selectedUnit);
+                                //}
 
-                                if (sectionMain.Button("Best Traits"))
-                                {
-                                    UnitTrait.setBestTraits(selectedUnit);
-                                }
+                                //if (sectionMain.Button("Best Traits"))
+                                //{
+                                //    UnitTrait.setBestTraits(selectedUnit);
+                                //}
 
                                 sectionMain.LabelCentered("Traits");
                                 sectionScroll.Background(guiManager.windowBoxStyle);
@@ -763,41 +764,6 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
             {
                 controlPlayer.buildingPillarless = false;
                 controlPlayer.buildingTrimless = false;
-            }
-        }
-
-        private PlayerUnitSettings playerUnitTraitSettings;
-        private void drawPlayerUnitSettings(PlayerUnitSettings playerUnitSettings, APlayableEntity entity, IUnitCollectionItem[] collection, ref bool onClick)
-        {
-            if (collection != null && UnitService.isFriendly(entity))
-            {
-                foreach (IUnitCollectionItem item in collection)
-                {
-                    sectionScroll.CheckBox(item.Description, ref playerUnitSettings.getSetting(item).Enabled, ref onClick);
-                }
-            }
-        }
-
-        private void updatePlayerUnitSettings(ref PlayerUnitSettings playerUnitSettings, APlayableEntity entity, IUnitCollectionItem[] collection)
-        {
-            if (UnitPreference.isPlayableEntity(entity))
-            {
-                playerUnitSettings = PlayerUnitSettings.fromEntity(entity, collection);
-            }
-            else
-            {
-                playerUnitSettings = null;
-            }
-        }
-
-        private void setPlayerUnitSettings(PlayerUnitSettings playerUnitSettings, APlayableEntity entity, IUnitCollectionItem[] collection)
-        {
-            if (playerUnitSettings != null)
-            {
-                foreach (IUnitCollectionItem item in collection)
-                {
-                    UnitPreference.setPreference(entity, item.Name, playerUnitSettings.getSetting(item).Enabled);
-                }
             }
         }
     }
