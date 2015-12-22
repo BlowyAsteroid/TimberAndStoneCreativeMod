@@ -95,7 +95,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         {
             setWindowSize(260f + sectionMain.ControlMargin * 2, Screen.height / 2);
             setWindowPosition(Screen.width - this.containerWidth, 0f);
-            setUpdatesPerSecond(5);
+            setUpdatesPerSecond(3);
 
             isVisibleInGame = true;
             isVisibleInMainMenu = false;

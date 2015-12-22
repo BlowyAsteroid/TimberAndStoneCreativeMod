@@ -193,10 +193,10 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
         private static readonly int[] STONE_BLOCKS = new int[] { 8, 66, 67, 68, 69, 70, 71, 72, 85 };
         private static readonly int[] DIRT_BLOCKS = new int[] { 4, 40, 87 };
         private static readonly int[] SAND_BLOCKS = new int[] { 6, 88 };
-        private static readonly int[] THEME_BLOCKS_1 = new int[] { 24, 89 };
+        private static readonly int[] THEME_BLOCKS_1 = new int[] { 24, 34, 89 };
         private static readonly int[] THEME_BLOCKS_2 = new int[] { 26, 90 };
         private static readonly int[] THEME_BLOCKS_3 = new int[] { 15, 93 };
-        private static readonly int[] THEME_BLOCKS_4 = new int[] { 25, 92 };
+        private static readonly int[] THEME_BLOCKS_4 = new int[] { 25, 30, 92 };
         private BlockProperties getSlopeBlockPropertiesForBlock(BlockProperties blockProperties)
         {
             BlockProperties tempBlockProperties = blockProperties;
