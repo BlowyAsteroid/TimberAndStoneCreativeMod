@@ -122,8 +122,22 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
         {
             if (removeResource(resource, getResourceAmount(resource)))
             {
-                addResource(resource, amount);
+                storage.addResource(resource, amount);
             }
+        }
+
+        public void addStructureToFactionStorage(BuildStructure structure, IFaction faction)
+        {
+            if (!structure.CheckResources())
+            {
+                for (int i = 0; i < structure.resourceTypes.Length; i++)
+                {
+                    storage.addResource(Resource.FromID(structure.resourceTypes[i]), structure.resourceAmounts[i]);
+                }
+            }
+
+            structure.faction = faction;
+            addStorageCap(structure);
         }
 
         private int currentResourceAmount;

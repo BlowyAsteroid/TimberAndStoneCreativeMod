@@ -47,12 +47,12 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
             if (excludeAirBlocks)
             {
                 return ModUtils.createCoordinatesFromSelection(designManager.selectedBlocks)
-                    .Where(c => chunkManager.GetBlock(c).properties.GetType() != typeof(BlockAir)).ToList();
+                    .Where(c => !(chunkManager.GetBlock(c).properties is BlockAir)).ToList();
             }
             else if (onlyAirBlocks)
             {
                 return ModUtils.createCoordinatesFromSelection(designManager.selectedBlocks)
-                    .Where(c => chunkManager.GetBlock(c).properties.GetType() == typeof(BlockAir)).ToList();
+                    .Where(c => chunkManager.GetBlock(c).properties is BlockAir).ToList();
             }
             else return ModUtils.createCoordinatesFromSelection(designManager.selectedBlocks);
         }
@@ -104,7 +104,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
                
                 if (tempCompareBlock == null || variationIndex < 0) continue;
 
-                tempBlockProperties = getSlopeBlockPropertiesFromCubeBlock(tempCompareBlock.properties);
+                tempBlockProperties = getSlopeBlockPropertiesForBlock(tempCompareBlock.properties);
 
                 if (tempBlockProperties.getVariations() == null) continue;
 
@@ -193,7 +193,11 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
         private static readonly int[] STONE_BLOCKS = new int[] { 8, 66, 67, 68, 69, 70, 71, 72, 85 };
         private static readonly int[] DIRT_BLOCKS = new int[] { 4, 40, 87 };
         private static readonly int[] SAND_BLOCKS = new int[] { 6, 88 };
-        private BlockProperties getSlopeBlockPropertiesFromCubeBlock(BlockProperties blockProperties)
+        private static readonly int[] THEME_BLOCKS_1 = new int[] { 24, 89 };
+        private static readonly int[] THEME_BLOCKS_2 = new int[] { 26, 90 };
+        private static readonly int[] THEME_BLOCKS_3 = new int[] { 15, 93 };
+        private static readonly int[] THEME_BLOCKS_4 = new int[] { 25, 92 };
+        private BlockProperties getSlopeBlockPropertiesForBlock(BlockProperties blockProperties)
         {
             BlockProperties tempBlockProperties = blockProperties;
 
@@ -213,29 +217,21 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
             {
                 tempBlockProperties = BlockProperties.SlopeSand;
             }
-
-            return tempBlockProperties;
-        }
-
-        private BlockProperties getCubeBlockPropertiesFromSlopeBlock(BlockProperties blockProperties)
-        {
-            BlockProperties tempBlockProperties = blockProperties;
-
-            if (GRASS_BLOCKS.Contains(blockProperties.getID()))
+            else if (THEME_BLOCKS_1.Contains(blockProperties.getID()))
             {
-                tempBlockProperties = BlockProperties.BlockGrass;
+                tempBlockProperties = BlockProperties.SlopeCeramic;
             }
-            else if (STONE_BLOCKS.Contains(blockProperties.getID()))
+            else if (THEME_BLOCKS_2.Contains(blockProperties.getID()))
             {
-                tempBlockProperties = BlockProperties.BlockStone;
+                tempBlockProperties = BlockProperties.SlopeWoodTile;
             }
-            else if (DIRT_BLOCKS.Contains(blockProperties.getID()))
+            else if (THEME_BLOCKS_3.Contains(blockProperties.getID()))
             {
-                tempBlockProperties = BlockProperties.BlockDirt;
+                tempBlockProperties = BlockProperties.SlopeNordicShingles;
             }
-            else if (SAND_BLOCKS.Contains(blockProperties.getID()))
+            else if (THEME_BLOCKS_4.Contains(blockProperties.getID()))
             {
-                tempBlockProperties = BlockProperties.BlockSand;
+                tempBlockProperties = BlockProperties.SlopeCeramic2;
             }
 
             return tempBlockProperties;
@@ -286,7 +282,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
                 {
                     if (tempReplaceBlock.properties.isTransparent())
                     {
-                        tempReplaceBlockProperties = getSlopeBlockPropertiesFromCubeBlock(properties);
+                        tempReplaceBlockProperties = getSlopeBlockPropertiesForBlock(properties);
                         tempReplaceBlockData = tempReplaceBlock.properties.getVariations()[ModUtils.getVariationIndexFromBlock(tempReplaceBlock)][0];
                     }
                     else continue;
@@ -407,19 +403,18 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
         private ChunkData getChunkData(Coordinate coordinate)
         {
             return chunkManager.chunkArray[coordinate.chunk.x, coordinate.chunk.y, coordinate.chunk.z];
-        }
+        }        
         
         public void buildStructure(ref BuildStructure structure, IFaction faction)
         {
             structure.beingBuilt = false;
             structure.isBuilt = true;
-            structure.buildProgress = 100f;
+            structure.buildProgress = 1f;
             structure.RenderTextured();
             structure.HideAccessPoints();
             structure.AddBlocks(98);
 
-            structure.faction = faction;
-            ResourceService.getInstance().addStorageCap(structure);
+            ResourceService.getInstance().addStructureToFactionStorage(structure, faction);
         }
 
         public void setDepthLevel(float position)
