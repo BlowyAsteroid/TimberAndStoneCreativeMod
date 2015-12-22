@@ -69,7 +69,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
 
             if (GUI.Button(RectangleUtils.get(tempX, y, BUTTON_SIZE), "-", guiManager.skin.button) && this.Value > this.Min)
             {
-                this.Value--;
+                if ((this.Value -= this.Increment) < this.Min) this.Value = this.Min;
                 isValueChanged = true;
             }      
 
@@ -81,7 +81,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
 
             if (GUI.Button(RectangleUtils.get(tempX, y, BUTTON_SIZE), "+", guiManager.skin.button) && this.Value < this.Max)
             {
-                this.Value++;
+                if ((this.Value += this.Increment) > this.Max) this.Value = this.Max;
                 isValueChanged = true;
             }
 

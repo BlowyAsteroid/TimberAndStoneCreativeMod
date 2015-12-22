@@ -549,7 +549,8 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 
                             if (selectedUnit.isAlive())
                             {
-                                if (sectionMain.NumberSelect("Level: ", selectedUnit.getProfession().getLevel(), out newLevelValue, min: 1, max: AProfession.maxLevel, showMinMax: true))
+                                if (sectionMain.NumberSelect("Level: ", selectedUnit.getProfession().getLevel(), out newLevelValue, 
+                                    increment: Input.GetKey(KeyCode.LeftShift) ? 5 : 1, min: 1, max: AProfession.maxLevel, showMinMax: true))
                                 {
                                     selectedUnit.getProfession().setLevel(newLevelValue);
                                 }
