@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Collections
 {
-    public sealed class UnitEnemy
+    public sealed class UnitEnemy : IUnitCollectionItem
     {
         public const String GOBLIN_INFANTRY = "Goblin Infantry";
         public const String GOBLIN_ARCHER = "Goblin Archer";
@@ -37,5 +37,6 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Collections
         }
 
         public String Name { get { return this.name; } }
+        public String Description { get { return this.name; } }
     }
 }
