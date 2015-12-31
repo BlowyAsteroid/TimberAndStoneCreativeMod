@@ -365,31 +365,32 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 {
                     doBuildStructures = false;
                     //Build Non-Built Structures
-                    controlPlayer.structures.Where(s => !s.isBuilt).ToList().ForEach(s => buildingService.buildStructure(ref s, worldManager.PlayerFaction));                                 
+                    controlPlayer.structures.Where(s => !s.isBuilt).ToList()
+                        .ForEach(s => buildingService.buildStructure(ref s, worldManager.PlayerFaction));                                 
                 }
                 else if (doReplaceBlocks)
                 {
                     doReplaceBlocks = false;
                     //Replace Selected Blocks
-                    buildingService.replaceBlocks(buildingService.getSelectedCoordinates(excludeAirBlocks: true), selectedBlockType, selectedBlockData);
+                    buildingService.replaceBlocksInSelection(selectedBlockType, selectedBlockData);
                 }
                 else if (doSmoothTerrain)
                 {
                     doSmoothTerrain = false;
                     //Smooth Selected Blocks
-                    buildingService.smoothBlocks(buildingService.getSelectedCoordinates(onlyAirBlocks: true));
+                    buildingService.smoothBlocksInSelection();
                 }
                 else if (doCreateBlocks)
                 {
                     doCreateBlocks = false;
                     //Build Selected Blocks
-                    buildingService.buildBlocks(buildingService.getSelectedCoordinates(onlyAirBlocks: true), selectedBlockType, selectedBlockData);
+                    buildingService.buildBlocksInSelection(selectedBlockType, selectedBlockData);
                 }
                 else if (doRemoveBlocks)
                 {
                     doRemoveBlocks = false;
                     //Remove Selected Blocks
-                    buildingService.getSelectedCoordinates(excludeAirBlocks: true).ForEach(c => buildingService.removeBlock(c));
+                    buildingService.removeBlocksInSelection();
                 }
                 else if (doRemoveTrees)
                 {
@@ -728,7 +729,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
             controlPlayer.buildingMaterial = properties;
             controlPlayer.buildTile = properties.getID();
             controlPlayer.buildingVariations = properties.getVariations(); 
-            controlPlayer.buildingVariationIndex = ModUtils.getVariationIndexFromBlock(block);
+            controlPlayer.buildingVariationIndex = ModUtils.getVariationIndex(block);
 
             if (block != null && (tempBlockDataTextureVariant = block.getMeta<BlockDataTextureVariant>()) != null)
             {
@@ -746,7 +747,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         {
             if (isMouseInWorld(out mouseWorldPosition))
             {
-                block = BuildingService.getInstance().getBlock(mouseWorldPosition);
+                block = buildingService.getBlock(Coordinate.FromWorld(mouseWorldPosition));
 
                 if (!isAirAllowed && block.properties.GetType() == typeof(BlockAir))
                 {

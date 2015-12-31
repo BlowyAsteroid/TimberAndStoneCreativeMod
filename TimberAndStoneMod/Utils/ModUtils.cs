@@ -12,30 +12,17 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Utils
 {
     public static class ModUtils
     {
-        private const float BLOCK_TO_WORLD_SIZE = 0.2f;
-        private const float BLOCK_TO_CHUNK_SIZE = 0.1f;
-
-        private static readonly List<Coordinate> EMPTY_COORDINATE_LIST = new List<Coordinate>();
-
-        private static List<Coordinate> selectedCoordinates = new List<Coordinate>();
-        public static List<Coordinate> createCoordinates(Vector3 startPosition, List<Vector3> offsetPositions)
+        public static IEnumerable<Coordinate> createCoordinatesFromSelection(List<Vector3> designManagerSelectedBlocks)
         {
-            selectedCoordinates.Clear();
+            if (isDesignManagerSelectedBlocks(designManagerSelectedBlocks))
+            {
+                Vector3 startPosition = getSlightlyOffsetY(designManagerSelectedBlocks[0]);
 
-            offsetPositions.ForEach(v => selectedCoordinates.Add(Coordinate.FromWorld(startPosition + v * BLOCK_TO_WORLD_SIZE)));            
-
-            return selectedCoordinates;
-        }
-
-        private static Vector3 tempStartPosition;
-        public static List<Coordinate> createCoordinatesFromSelection(List<Vector3> designManagerSelectedBlocks)
-        {
-            if (!isDesignManagerSelectedBlocks(designManagerSelectedBlocks)) return EMPTY_COORDINATE_LIST;
-
-            tempStartPosition = designManagerSelectedBlocks[0];
-            tempStartPosition.y -= BLOCK_TO_CHUNK_SIZE;
-
-            return createCoordinates(tempStartPosition, designManagerSelectedBlocks.GetRange(1, designManagerSelectedBlocks.Count()-1).ToList());            
+                foreach (Vector3 position in designManagerSelectedBlocks.GetRange(1, designManagerSelectedBlocks.Count() - 1))
+                {
+                    yield return Coordinate.FromWorld(startPosition + position * ChunkManager.getInstance().voxelSize);
+                }
+            }           
         }
 
         public static bool isDesignManagerSelectedBlocks(List<Vector3> designManagerSelectedBlocks)
@@ -93,7 +80,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Utils
         }
 
         private static IBlockData[][] tempVariations;
-        public static int getVariationIndexFromBlock(IBlock block)
+        public static int getVariationIndex(IBlock block)
         {
             if (block == null || (tempVariations = block.properties.getVariations()) == null) return 0;
 

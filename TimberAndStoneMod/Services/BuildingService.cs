@@ -25,80 +25,74 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
             return chunkManager.GetBlock(coordinate);
         }
 
-        public IBlock getBlock(Vector3 worldPosition)
+        public void removeBlocksInSelection()
         {
-            return chunkManager.GetBlock(Coordinate.FromWorld(worldPosition));
-        }
+            IBlock tempRemoveBlock;
 
-        private IBlock tempRemoveBlock;
-        public bool removeBlock(Coordinate coordinate)
-        {
-            tempRemoveBlock = getBlock(coordinate);
+            foreach (Coordinate coordinate in getSelectedCoordinates(excludeAirBlocks: true))
+            {
+                tempRemoveBlock = getBlock(coordinate);
 
-            if(coordinate.absolute.y > 0 && ModUtils.isBuildable(tempRemoveBlock.properties, true))
-            {
-                return buildBlock(coordinate, BlockAir.BlockAir);
-            }
-            else return false;
-        }        
-
-        public List<Coordinate> getSelectedCoordinates(bool excludeAirBlocks = false, bool onlyAirBlocks = false)
-        {
-            if (excludeAirBlocks)
-            {
-                return ModUtils.createCoordinatesFromSelection(designManager.selectedBlocks)
-                    .Where(c => !(chunkManager.GetBlock(c).properties is BlockAir)).ToList();
-            }
-            else if (onlyAirBlocks)
-            {
-                return ModUtils.createCoordinatesFromSelection(designManager.selectedBlocks)
-                    .Where(c => chunkManager.GetBlock(c).properties is BlockAir).ToList();
-            }
-            else return ModUtils.createCoordinatesFromSelection(designManager.selectedBlocks);
-        }
-                
-        public void buildBlocks(List<Coordinate> coordinates, BlockProperties properties, IBlockData data = null)
-        {
-            foreach (Coordinate coordinate in coordinates)
-            {
-                buildBlock(coordinate, properties, data);
-            }
-        }
-        
-        public bool buildBlock(Coordinate coordinate, BlockProperties properties, IBlockData data = null)
-        {
-            if (chunkManager.isCoordInMap(coordinate))
-            {
-                if (setBlock(coordinate, properties, data))
+                if(coordinate.absolute.y > 0 && ModUtils.isBuildable(tempRemoveBlock.properties, true))
                 {
-                    designManager.ReValidateBlock(coordinate);
-
-                    return true;
+                    setBlock(coordinate, BlockAir.BlockAir);
                 }
             }
+        }
 
-            return false;
+        public IEnumerable<Coordinate> getSelectedCoordinates(bool excludeAirBlocks = false, bool onlyAirBlocks = false)
+        {
+            foreach (Coordinate coordinate in ModUtils.createCoordinatesFromSelection(designManager.selectedBlocks))
+            {
+                if (!chunkManager.isCoordInMap(coordinate)) continue;
+
+                if (excludeAirBlocks)
+                {
+                    if (!(chunkManager.GetBlock(coordinate).properties is BlockAir))
+                    {
+                        yield return coordinate;
+                    }
+                }
+                else if (onlyAirBlocks)
+                {
+                    if (chunkManager.GetBlock(coordinate).properties is BlockAir)
+                    {
+                        yield return coordinate;
+                    }
+                }
+                else yield return coordinate;
+            }
+        }
+
+        public void buildBlocksInSelection(BlockProperties properties, IBlockData data = null)
+        {
+            foreach (Coordinate coordinate in getSelectedCoordinates(onlyAirBlocks: true))
+            {
+                setBlock(coordinate, properties, data);               
+            }
         }
 
         public bool setBlock(Coordinate coordinate, BlockProperties properties, IBlockData data = null)
         {
-            return data != null ? chunkManager.SetBlock(coordinate, properties, data) : chunkManager.SetBlock(coordinate, properties);
-        }
-        
-        public void smoothBlocks(List<Coordinate> coordinates)
+            if (!chunkManager.isCoordInMap(coordinate)) return false;
+
+            return data != null 
+                ? chunkManager.SetBlock(coordinate, properties, data) 
+                : chunkManager.SetBlock(coordinate, properties);
+        }        
+
+        public void smoothBlocksInSelection()
         {
             IBlock tempSmoothBlock, tempCompareBlock;
             IBlockData tempBlockData;
             BlockProperties tempBlockProperties;
-            int variationIndex = -1;
+            int variationIndex;
 
-            foreach(Coordinate coordinate in coordinates)
+            foreach (Coordinate coordinate in getSelectedCoordinates(onlyAirBlocks: true))
             {
-                if (!chunkManager.isCoordInMap(coordinate)) continue;
-
                 tempSmoothBlock = getBlock(coordinate);
 
-                if (!isValidAirBlock(tempSmoothBlock) || !isValidCompareBlock(tempSmoothBlock.relative(0, -1, 0))) continue;
+                if (!isValidCompareBlock(tempSmoothBlock.relative(0, -1, 0))) continue;
 
                 variationIndex = getVariationIndexForSmoothing(tempSmoothBlock, out tempCompareBlock);
                
@@ -110,7 +104,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 
                 tempBlockData = tempBlockProperties.getVariations()[variationIndex][0];
                 
-                buildBlock(coordinate, tempBlockProperties, tempBlockData);
+                setBlock(coordinate, tempBlockProperties, tempBlockData);
             }            
         }
 
@@ -262,93 +256,61 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
                 && (block.relative(0, 0, -z).properties.isTransparent() || isValidAirBlock(block.relative(0, 0, -z)));
         }        
         
-        public void replaceBlocks(List<Coordinate> coordinates, BlockProperties properties, IBlockData data = null)
+        public void replaceBlocksInSelection(BlockProperties properties, IBlockData data = null)
         {
             IBlock tempReplaceBlock;
             IBlockData tempReplaceBlockData;
             BlockProperties tempReplaceBlockProperties;
 
-            foreach (Coordinate coordinate in coordinates)
+            foreach (Coordinate coordinate in getSelectedCoordinates(excludeAirBlocks: true))
             {
-                if (!chunkManager.isCoordInMap(coordinate)) continue;
-
                 tempReplaceBlock = getBlock(coordinate);
 
-                if (!ModUtils.isBuildable(tempReplaceBlock.properties, true)) continue;
-
-                if (properties.getVariations() != null && tempReplaceBlock.properties.getVariations() == null) continue;
-
-                if (tempReplaceBlock.properties.getVariations() != null && properties.getVariations() != null)
-                {
-                    if (tempReplaceBlock.properties.isTransparent())
-                    {
-                        tempReplaceBlockProperties = getSlopeBlockPropertiesForBlock(properties);
-                        tempReplaceBlockData = tempReplaceBlock.properties.getVariations()[ModUtils.getVariationIndexFromBlock(tempReplaceBlock)][0];
-                    }
-                    else continue;
+                if (!ModUtils.isBuildable(tempReplaceBlock.properties, includeAlternates: true)) continue;
+                                
+                if (properties.getVariations() != null && tempReplaceBlock.properties.getVariations() != null)                    
+                {                    
+                    tempReplaceBlockProperties = getSlopeBlockPropertiesForBlock(properties);
+                    tempReplaceBlockData = tempReplaceBlock.properties.getVariations()[ModUtils.getVariationIndex(tempReplaceBlock)][0];                   
                 }
-                else if (tempReplaceBlock.properties.getVariations() != null)
-                {
-                    continue;
-                }
-                else
+                else if (properties.getVariations() == null && tempReplaceBlock.properties.getVariations() == null)
                 {
                     tempReplaceBlockProperties = properties;
                     tempReplaceBlockData = data;
                 }
+                else continue;
 
-                buildBlock(coordinate, tempReplaceBlockProperties, tempReplaceBlockData);
-
-                tempReplaceBlockProperties = null;
-                tempReplaceBlockData = null;                
+                setBlock(coordinate, tempReplaceBlockProperties, tempReplaceBlockData);              
             }
         }
-                
-        public List<TreeFlora> getSelectedTrees()
-        {
-            return terrainManager.treeObjects.Where(tree => tree.inChopQue).ToList();
-        }
-
-        public List<Shrub> getSelectedShrubs()
-        {
-            return terrainManager.shrubObjects.Where(shrub => shrub.inChopQue).ToList();
-        }
         
-        public bool removeSelectedTrees()
+        public void removeSelectedTrees()
         {
-            return getSelectedTrees().Where(tree => removeTree(tree)).Count() > 0;
+            foreach(TreeFlora tree in terrainManager.treeObjects.Where(tree => tree.inChopQue))
+            {
+                if (isValidCompareBlock(getBlock(Coordinate.FromChunkBlock(tree.chunkPos, tree.blockPos)), true))
+                {
+                    terrainManager.RemoveTree(tree, 1);
+                }
+                else terrainManager.RemoveTree(tree, 0);
+            }
         }
 
-        public bool removeSelectedShrubs()
+        public void removeSelectedShrubs()
         {
-            return getSelectedShrubs().Where(shrub => removeShrub(shrub)).Count() > 0;
+            foreach(Shrub shrub in terrainManager.shrubObjects.Where(shrub => shrub.inChopQue))
+            {
+                if (isValidCompareBlock(getBlock(Coordinate.FromChunkBlock(shrub.chunkPos, shrub.blockPos)), true))
+                {
+                    terrainManager.RemoveShrub(shrub, 1);
+                }
+                else terrainManager.RemoveShrub(shrub, 0);
+            }
         }
 
         public void removeAllTreeItems()
         {
             terrainManager.ClearAll();
-        }
-
-        public bool removeTree(TreeFlora tree)
-        {
-            if (isValidCompareBlock(getBlock(Coordinate.FromChunkBlock(tree.chunkPos, tree.blockPos)), true))
-            {
-                terrainManager.RemoveTree(tree, 1);
-            }
-            else terrainManager.RemoveTree(tree, 0);
-
-            return true;
-        }
-
-        public bool removeShrub(Shrub shrub)
-        {
-            if (isValidCompareBlock(getBlock(Coordinate.FromChunkBlock(shrub.chunkPos, shrub.blockPos)), true))
-            {
-                terrainManager.RemoveShrub(shrub, 1);
-            }
-            else terrainManager.RemoveShrub(shrub, 0);
-
-            return true;
         }
         
         public void addTree(Coordinate coordinate)

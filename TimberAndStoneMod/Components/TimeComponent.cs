@@ -12,7 +12,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 
         public override void OnStart() 
         {
-            setUpdatesPerSecond(5);
+            setUpdatesPerSecond(1);
         }
 
         public override void OnUpdate()
