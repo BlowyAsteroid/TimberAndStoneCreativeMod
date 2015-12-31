@@ -286,7 +286,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
         
         public void removeSelectedTrees()
         {
-            foreach(TreeFlora tree in terrainManager.treeObjects.Where(tree => tree.inChopQue))
+            foreach(TreeFlora tree in terrainManager.treeObjects.Where(tree => tree.inChopQue).ToList())
             {
                 if (isValidCompareBlock(getBlock(Coordinate.FromChunkBlock(tree.chunkPos, tree.blockPos)), true))
                 {
@@ -298,7 +298,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 
         public void removeSelectedShrubs()
         {
-            foreach(Shrub shrub in terrainManager.shrubObjects.Where(shrub => shrub.inChopQue))
+            foreach(Shrub shrub in terrainManager.shrubObjects.Where(shrub => shrub.inChopQue).ToList())
             {
                 if (isValidCompareBlock(getBlock(Coordinate.FromChunkBlock(shrub.chunkPos, shrub.blockPos)), true))
                 {
