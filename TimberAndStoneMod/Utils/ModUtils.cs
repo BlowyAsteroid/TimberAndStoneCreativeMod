@@ -120,7 +120,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Utils
                             resource.name.Replace(' ', '_').Replace("'", String.Empty).ToUpper(), resource.index, Environment.NewLine);
                     }
                 }
-                catch (Exception e) { }
+                catch { }
             }
 
             System.IO.File.WriteAllText("resource_constants.txt", result);

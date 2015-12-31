@@ -83,7 +83,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
                 worldPosition = controlPlayer.WorldPositionAtMouse();
                 return true;
             }
-            catch (Exception e)
+            catch
             {
                 worldPosition = Vector3.zero;
                 return false;
