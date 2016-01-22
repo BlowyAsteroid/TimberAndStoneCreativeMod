@@ -57,16 +57,13 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         {
             UnitPreference.setPreference(evt.unit, UnitPreference.WAIT_IN_HALL_WHILE_IDLE, true);
             UnitPreference.setPreference(evt.unit, UnitPreference.TRAIN_UNDER_LEVEL_3, true);
+            UnitPreference.setPreference(evt.unit, UnitPreference.IS_PLAYER_UNIT, true);
         }
 
         [Timber_and_Stone.API.Event.EventHandler(Priority.Normal)]
         public void onEntityDeathNormal(EventEntityDeath evt)
         {
-            if (!UnitService.isFriendly(evt.getUnit())) return;
-
-            UnitPreference.setPreference(evt.getUnit(), UnitPreference.IS_PLAYER_UNIT, true);
-
-            if (!modSettings.isPeacefulEnabled) return;
+            if (!modSettings.isPeacefulEnabled || !UnitService.isFriendly(evt.getUnit())) return;
 
             evt.result = Result.Deny;
         }
@@ -76,6 +73,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         {
             if (evt.result != Result.Deny) return;
 
+            UnitPreference.setPreference(evt.getUnit(), UnitPreference.IS_PLAYER_UNIT, true);
             UnitService.reviveUnit(evt.getUnit(), WorldManager.getInstance().PlayerFaction);
         }
     }

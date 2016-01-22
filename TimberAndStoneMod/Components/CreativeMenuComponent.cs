@@ -168,6 +168,67 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 isMouseInGUIOverride = false;
             }
 
+
+
+            if (Input.GetKey(KeyCode.Z))
+            {
+                if (getBlockAtMouse(out tempBlock))
+                {
+                    buildingService.setDepthLevel(tempBlock.coordinate.absolute.y + 2);
+                }
+            }
+
+            if (!isSelecting && !isSelectingUnitType && (modSettings.isCreativeEnabled ? !isChopping : true))
+            {
+                if (Input.GetKeyUp(CHANGE_VIEW_KEY))
+                {
+                    controlPlayer.SwitchCamera();
+                    log("Camera switched.");
+                }
+
+                if (Input.GetKeyDown(PRIMARY_KEY))
+                {
+                    controlPlayer.StartDesigning(eDesignType.MINE);
+                }
+                else if (Input.GetKeyUp(CHOP_KEY))
+                {
+                    controlPlayer.chopType = eChopType.CLEARCUT;
+                    controlPlayer.StartDesigning(eDesignType.CHOP);
+                }
+                else if (Input.GetKeyUp(PICK_BLOCK_KEY))
+                {
+                    //Pick Block
+                    if (getBlockAtMouse(out tempBlock))
+                    {
+                        if (ModUtils.isBuildable(tempBlock.properties))
+                        {
+                            updateControlPlayerBlockProperties(tempBlock.properties, tempBlock);
+                            controlPlayer.StartDesigning(eDesignType.BUILD);
+                        }
+
+                        if (Input.GetKey(KeyCode.LeftControl))
+                        {
+                            log("ID: " + tempBlock.properties.getID());
+                            log("Variation: " + controlPlayer.buildingVariationIndex);
+                            log("Name: " + tempBlock.properties.getName());
+                        }
+                    }
+                }
+            }
+            else if (isSelecting)
+            {
+                if (Input.GetKeyUp(RAISE_SELECTION_KEY))
+                {
+                    controlPlayer.RaiseSelectBox(controlPlayer.currentSelectBox);
+                }
+                else if (Input.GetKeyUp(LOWER_SELECTION_KEY))
+                {
+                    controlPlayer.LowerSelectBox(controlPlayer.currentSelectBox);
+                }
+            } 
+
+
+
             if (modSettings.isCreativeEnabled)
             {
                 shiftClickUp = (Input.GetMouseButtonUp(Mouse.LEFT) && Input.GetKey(KeyCode.LeftShift));
@@ -207,23 +268,9 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                         doPlaceAnimal = true;
                     }
                 }
-
-                if (Input.GetKey(KeyCode.Z))
-                {
-                    if (getBlockAtMouse(out tempBlock))
-                    {
-                        buildingService.setDepthLevel(tempBlock.coordinate.absolute.y + 2);
-                    }
-                }
                 
                 if (!isSelecting && !isSelectingUnitType)
-                {    
-                    if (Input.GetKeyUp(CHANGE_VIEW_KEY))
-                    {
-                        controlPlayer.SwitchCamera();
-                        log("Camera switched.");
-                    }
-
+                {  
                     if (isChopping)
                     {
                         if (Input.GetKeyUp(PRIMARY_KEY))
@@ -234,47 +281,10 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                         {
                             buildingService.addShrub(Coordinate.FromWorld(controlPlayer.WorldPositionAtMouse()));
                         }
-                    }                   
-                    else if (Input.GetKeyDown(PRIMARY_KEY))
-                    {
-                        controlPlayer.StartDesigning(eDesignType.MINE);
-                    }
-                    else if (Input.GetKeyUp(CHOP_KEY))
-                    {
-                        controlPlayer.chopType = eChopType.CLEARCUT;
-                        controlPlayer.StartDesigning(eDesignType.CHOP);
-                    }
-                    else if (Input.GetKeyUp(PICK_BLOCK_KEY))
-                    {
-                        //Pick Block
-                        if (getBlockAtMouse(out tempBlock))
-                        {
-                            if (ModUtils.isBuildable(tempBlock.properties))
-                            {
-                                updateControlPlayerBlockProperties(tempBlock.properties, tempBlock);
-                                controlPlayer.StartDesigning(eDesignType.BUILD);
-                            }
-
-                            if (Input.GetKey(KeyCode.LeftControl))
-                            {
-                                log("ID: " + tempBlock.properties.getID());
-                                log("Variation: " + controlPlayer.buildingVariationIndex);
-                                log("Name: " + tempBlock.properties.getName());
-                            }
-                        }
-                    }
+                    }  
                 }
                 else if (isSelecting)
                 {
-                    if (Input.GetKeyUp(RAISE_SELECTION_KEY))
-                    {
-                        controlPlayer.RaiseSelectBox(controlPlayer.currentSelectBox);
-                    }
-                    else if (Input.GetKeyUp(LOWER_SELECTION_KEY))
-                    {
-                        controlPlayer.LowerSelectBox(controlPlayer.currentSelectBox);
-                    }
-
                     if (isScrolling && isMouseInGUIOverride)
                     {
                         isScrollOverride = true;
