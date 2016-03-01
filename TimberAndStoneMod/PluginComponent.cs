@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Timers;
+using Timber_and_Stone.API.Event;
+using Timber_and_Stone.Event;
 using UnityEngine;
 
 namespace Plugin.BlowyAsteroid.TimberAndStoneMod
 {
-    public abstract class PluginComponent : MonoBehaviour
+    public abstract class PluginComponent : MonoBehaviour, IEventListener
     {
         private const int DEFAULT_UPDATES_PER_SECOND = 1;
         private const int MAX_UPDATES_PER_SECOND = 10;
@@ -20,6 +22,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         protected readonly GUIManager guiManager = GUIManager.getInstance();
         protected readonly TimeManager timeManager = TimeManager.getInstance();
         protected readonly WorldManager worldManager = WorldManager.getInstance();
+        protected readonly EventManager eventManager = EventManager.getInstance();
 
         protected ControlPlayer controlPlayer { get; private set; }
         protected bool isExceptionThrown { get; private set; }
@@ -35,6 +38,8 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         {
             isExceptionThrown = false;
             controlPlayer = guiManager.controllerObj.GetComponent<ControlPlayer>();
+
+            eventManager.Register(this);
         }
 
         public void Start()
@@ -96,6 +101,14 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
             {
                 Exception e = obj as Exception;
                 guiManager.AddTextLine(String.Format("{0}: {1}", e.GetType(), e.Message));
+
+                foreach(String line in e.StackTrace.Split(Environment.NewLine.ToCharArray()))
+                {
+                    if (line.Trim() != String.Empty)
+                    {
+                        guiManager.AddTextLine(line);
+                    }
+                }
 
                 isExceptionThrown = true;
             }

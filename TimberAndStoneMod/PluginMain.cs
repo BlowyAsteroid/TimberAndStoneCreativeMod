@@ -29,52 +29,12 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
             addComponent(typeof(CreativeMenuComponent));
             addComponent(typeof(TimeComponent));
             addComponent(typeof(ModSettingsComponent));
+            addComponent(typeof(GameSaveComponent));
         }
 
         public override void OnEnable()
         {
             eventManager.Register(this);
-        }
-
-        [Timber_and_Stone.API.Event.EventHandler(Priority.Normal)]
-        public void onInvasionNormal(EventInvasion evt)
-        {
-            if (!modSettings.isPeacefulEnabled) return;
-
-            evt.result = Result.Deny;
-        }
-
-        [Timber_and_Stone.API.Event.EventHandler(Priority.Monitor)]
-        public void onInvasionMonitor(EventInvasion evt)
-        {
-            if (evt.result != Result.Deny) return;
-
-            log(String.Format("A {0} invasion has been cancelled.", evt.invasion.getName()));
-        }
-
-        [Timber_and_Stone.API.Event.EventHandler(Priority.Normal)]
-        public void onMigrantAcceptNormal(EventMigrantAccept evt)
-        {
-            UnitPreference.setPreference(evt.unit, UnitPreference.WAIT_IN_HALL_WHILE_IDLE, true);
-            UnitPreference.setPreference(evt.unit, UnitPreference.TRAIN_UNDER_LEVEL_3, true);
-            UnitPreference.setPreference(evt.unit, UnitPreference.IS_PLAYER_UNIT, true);
-        }
-
-        [Timber_and_Stone.API.Event.EventHandler(Priority.Normal)]
-        public void onEntityDeathNormal(EventEntityDeath evt)
-        {
-            if (!modSettings.isPeacefulEnabled || !UnitService.isFriendly(evt.getUnit())) return;
-
-            evt.result = Result.Deny;
-        }
-
-        [Timber_and_Stone.API.Event.EventHandler(Priority.Monitor)]
-        public void onEntityDeathMonitor(EventEntityDeath evt)
-        {
-            if (evt.result != Result.Deny) return;
-
-            UnitPreference.setPreference(evt.getUnit(), UnitPreference.IS_PLAYER_UNIT, true);
-            UnitService.reviveUnit(evt.getUnit(), WorldManager.getInstance().PlayerFaction);
         }
     }
 }

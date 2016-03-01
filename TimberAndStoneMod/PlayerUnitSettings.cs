@@ -13,11 +13,11 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
             this.UnitSettings = new List<UnitSetting>();
         }
 
-        public static PlayerUnitSettings fromEntity(APlayableEntity entity, IUnitCollectionItem[] collection)
+        public static PlayerUnitSettings fromEntity(APlayableEntity entity, IUnitSettingCollectionItem[] collection)
         {
             List<UnitSetting> tempSettings = new List<UnitSetting>();
             UnitSetting tempSetting;
-            foreach (IUnitCollectionItem item in collection)
+            foreach (IUnitSettingCollectionItem item in collection)
             {
                 tempSetting = new UnitSetting();
                 tempSetting.Item = item;
@@ -32,23 +32,23 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
             return playerUnitSettings;
         }
 
-        public UnitSetting getSetting(IUnitCollectionItem item)
+        public UnitSetting getSetting(IUnitSettingCollectionItem item)
         {
             return this.UnitSettings.Where(s => s.Item == item).FirstOrDefault();
         }
 
-        public void setSetting(IUnitCollectionItem item, bool enabled)
+        public void setSetting(IUnitSettingCollectionItem item, bool enabled)
         {
             getSetting(item).Enabled = enabled;
         }
 
         public sealed class UnitSetting
         {
-            public IUnitCollectionItem Item { get; set; }
+            public IUnitSettingCollectionItem Item { get; set; }
             public bool Enabled;
         }
 
-        public static void updatePlayerUnitSettings(ref PlayerUnitSettings playerUnitSettings, APlayableEntity entity, IUnitCollectionItem[] collection)
+        public static void updatePlayerUnitSettings(ref PlayerUnitSettings playerUnitSettings, APlayableEntity entity, IUnitSettingCollectionItem[] collection)
         {
             if (UnitPreference.isPlayableEntity(entity))
             {
@@ -60,11 +60,11 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
             }
         }
 
-        public static void setPlayerUnitSettings(PlayerUnitSettings playerUnitSettings, APlayableEntity entity, IUnitCollectionItem[] collection)
+        public static void setPlayerUnitSettings(PlayerUnitSettings playerUnitSettings, APlayableEntity entity, IUnitSettingCollectionItem[] collection)
         {
             if (playerUnitSettings != null)
             {
-                foreach (IUnitCollectionItem item in collection)
+                foreach (IUnitSettingCollectionItem item in collection)
                 {
                     UnitPreference.setPreference(entity, item.Name, playerUnitSettings.getSetting(item).Enabled);
                 }

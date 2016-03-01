@@ -23,11 +23,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Utils
 
         public static Rect get(float x, float y, float width, float height)
         {
-            tempRectangle.x = x;
-            tempRectangle.y = y;
-            tempRectangle.width = width;
-            tempRectangle.height = height;
-
+            tempRectangle.Set(x, y, width, height);
             return tempRectangle;
         }
     }

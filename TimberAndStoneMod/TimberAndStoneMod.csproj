@@ -47,6 +47,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Collections\IUnitSettingCollectionItem.cs" />
+    <Compile Include="Components\GameSaveComponent.cs" />
     <Compile Include="Components\ModSettingsComponent.cs" />
     <Compile Include="Collections\IUnitCollectionItem.cs" />
     <Compile Include="GUINumberSelect.cs" />
@@ -57,6 +59,7 @@
     <Compile Include="Collections\ResourceId.cs" />
     <Compile Include="Collections\UnitAnimal.cs" />
     <Compile Include="Collections\UnitEnemy.cs" />
+    <Compile Include="Services\GameSaveService.cs" />
     <Compile Include="Utils\ModUtils.cs" />
     <Compile Include="PluginComponent.cs" />
     <Compile Include="PluginMain.cs" />

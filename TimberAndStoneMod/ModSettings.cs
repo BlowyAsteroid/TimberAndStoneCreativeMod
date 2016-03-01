@@ -15,6 +15,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         public const String IS_INFINITE_MATERIALS_ENABLED = "blowy.cheats.infinitematerials";
         public const String IS_UNLIMITED_STORAGE_ENABLED = "blowy.cheats.unlimitedstorage";
         public const String IS_SHOW_ENEMIES_ENABLED = "blowy.cheats.showenemies";
+        public const String IS_AUTO_BACKUP_ENABLED = "blowy.autobackup";
 
         private const String NEW_SETTLEMENT = "New Settlement";
 
@@ -25,13 +26,16 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
         public bool isInfiniteMaterialsEnabled;
         public bool isUnlimitedStorageEnabled;
         public bool isShowEnemiesEnabled;
+        public bool isAutoBackupsEnabled;
 
         public bool isHasSettings { get; private set; }
 
         private ModSettings() { }
 
-        public void loadSettings(String settlementName)
+        public void loadSettings(String settlementName = NEW_SETTLEMENT)
         {
+            this.isAutoBackupsEnabled = getPlayerSetting(IS_AUTO_BACKUP_ENABLED);
+
             if (!isValidSettlementName(settlementName)) return;
 
             String prefix = settlementName + ".";
@@ -44,11 +48,14 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod
             this.isUnlimitedStorageEnabled = getPlayerSetting(prefix + IS_UNLIMITED_STORAGE_ENABLED);
             this.isShowEnemiesEnabled = getPlayerSetting(prefix + IS_SHOW_ENEMIES_ENABLED);
 
+
             this.isHasSettings = true;
         }
 
-        public void saveSettings(String settlementName)
+        public void saveSettings(String settlementName = NEW_SETTLEMENT)
         {
+            setPlayerSetting(IS_AUTO_BACKUP_ENABLED, this.isAutoBackupsEnabled);
+
             if (!isValidSettlementName(settlementName)) return;
 
             String prefix = settlementName + ".";

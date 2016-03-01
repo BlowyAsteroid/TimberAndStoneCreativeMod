@@ -1,6 +1,9 @@
 ﻿using Plugin.BlowyAsteroid.TimberAndStoneMod.Collections;
 using Plugin.BlowyAsteroid.TimberAndStoneMod.Services;
+using System;
 using Timber_and_Stone;
+using Timber_and_Stone.API.Event;
+using Timber_and_Stone.Event;
 using UnityEngine;
 
 namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
@@ -27,6 +30,46 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         private ResourceService resourceService = ResourceService.getInstance();
         private UnitService unitService = UnitService.getInstance();
 
+        #region Events
+        [Timber_and_Stone.API.Event.EventHandler(Priority.Normal)]
+        public void onInvasionNormal(EventInvasion evt)
+        {
+            if (!modSettings.isPeacefulEnabled) return;
+
+            evt.result = Result.Deny;
+        }
+
+        [Timber_and_Stone.API.Event.EventHandler(Priority.Monitor)]
+        public void onInvasionMonitor(EventInvasion evt)
+        {
+            if (evt.result != Result.Deny) return;
+
+            log(String.Format("A {0} invasion has been cancelled.", evt.invasion.getName()));
+        }
+
+        [Timber_and_Stone.API.Event.EventHandler(Priority.Normal)]
+        public void onMigrantAcceptNormal(EventMigrantAccept evt)
+        {
+            applyPlayerPreferences(evt.unit);
+        }
+
+        [Timber_and_Stone.API.Event.EventHandler(Priority.Normal)]
+        public void onEntityDeathNormal(EventEntityDeath evt)
+        {
+            if (!modSettings.isPeacefulEnabled || !UnitPreference.getPreference(evt.getUnit(), UnitPreference.IS_PLAYER_UNIT)) return;
+
+            evt.result = Result.Deny;
+        }
+
+        [Timber_and_Stone.API.Event.EventHandler(Priority.Monitor)]
+        public void onEntityDeathMonitor(EventEntityDeath evt)
+        {
+            if (evt.result != Result.Deny) return;
+
+            UnitService.reviveUnit(evt.getUnit(), worldManager.PlayerFaction);
+        }
+        #endregion
+
         public override void OnStart()
         {
             setWindowSize(260f + sectionMain.ControlMargin * 2, Screen.height / 2);
@@ -39,6 +82,11 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 
             sectionMain.Direction = GUISection.FlowDirection.VERTICAL;
             sectionMain.Flow = GUISection.Overflow.HIDDEN;
+
+            foreach (APlayableEntity entity in worldManager.PlayerFaction.units)
+            {
+                applyPlayerPreferences(entity);
+            }
         }
 
         public override void OnDraw(int windowId)
@@ -113,7 +161,6 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 
                 if (!modSettings.isCheatsEnabled)
                 {
-                    //Disable all cheats
                     modSettings.isAlwaysDaytimeEnabled = false;
                     modSettings.isPeacefulEnabled = false;
                     modSettings.isShowEnemiesEnabled = false;
@@ -138,7 +185,6 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 
                 if (modSettings.isPeacefulEnabled)
                 {
-                    //Destroy All Enemy Units  
                     foreach (ALivingEntity entity in unitService.getEnemyUnits())
                     {
                         if (!entity.isAlive() && UnitPreference.getPreference(entity, UnitPreference.IS_PLAYER_UNIT))
@@ -154,7 +200,6 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
             {
                 doUnlimitedStorage = false;
                 modSettings.isInfiniteMaterialsEnabled = false;
-                //Restore Storage Caps
                 resourceService.restoreStorageCaps();
             }
             
@@ -164,12 +209,11 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 modSettings.isUnlimitedStorageEnabled = false;
 
                 if (modSettings.isInfiniteMaterialsEnabled)
-                {//Lower Resource Mass                    
+                {                
                     resourceService.getAllResources().ForEach(r => resourceService.lowerResourceMass(r));
-                }//Restore Resource Mass
+                }
                 else resourceService.getAllResources().ForEach(r => resourceService.restoreResourceMass(r));
 
-                //Refill Storage Containers
                 resourceService.getAllResources().ForEach(r => resourceService.fillResourceStorage(r, FILL_STORAGE_PERCENTAGE));
             }
 
@@ -177,31 +221,26 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
             {
                 if (modSettings.isPeacefulEnabled)
                 {
-                    //Fix Unit Status
                     unitService.getFriendlyUnits().ForEach(u => fixUnitStatus(u));
                 }
                 else if (modSettings.isShowEnemiesEnabled)
                 {
-                    //Show Enemy Units
                     unitService.getEnemyUnits().ForEach(u => u.spottedTimer = 3f);
                 }
 
                 if (modSettings.isInfiniteMaterialsEnabled)
                 {
-                    //Refill Storage Containers
                     resourceService.getAllResources().ForEach(r => resourceService.fillResourceStorage(r, FILL_STORAGE_PERCENTAGE));
                 }
 
                 if (modSettings.isUnlimitedStorageEnabled)
                 {
-                    //Update Storage Caps
                     resourceService.makeStorageRoom();
                 }
 
                 if (doSpawnMigrant)
                 {
                     doSpawnMigrant = false;
-                    //Spawn Migrant
                     if (!unitService.spawnMigrant())
                     {
                         log("Roads are needed before a migrant can be spawned.");
@@ -210,7 +249,6 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 else if (doSpawnMerchant)
                 {
                     doSpawnMerchant = false;
-                    //Spawn Merchant
                     if (!unitService.spawnMerchant())
                     {
                         log("Roads are needed before a merchant can be spawned.");
@@ -219,31 +257,26 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 else if (doSpawnAnimal)
                 {
                     doSpawnAnimal = false;
-                    //Spawn Animal
                     unitService.spawnAnimal();
                 }
                 else if (doSpawnInvasion)
                 {
                     doSpawnInvasion = false;
-                    //Spawn Invasion
                     unitService.spawnInvasion();
                 }
                 else if (doKillEnemies)
                 {
                     doKillEnemies = false;
-                    //Kill All Enemy Units
                     unitService.getEnemyUnits().ForEach(u => u.hitpoints = 0f);
                 }
                 else if (doBestTraits)
                 {
                     doBestTraits = false;
-                    //Set Best Unit Traits
                     unitService.getPlayableUnits().ForEach(u => UnitTrait.setBestTraits(u));
                 }
                 else if (doMaxCurrentProfessions)
                 {
                     doMaxCurrentProfessions = false;
-                    //Set Units Current Profession To Max
                     unitService.getPlayableUnits().ForEach(u => u.getProfession().setLevel(AProfession.maxLevel));
                 }
             }
@@ -255,6 +288,13 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
             if (entity.fatigue <= .5f) entity.fatigue = 1f;
             if (entity.morale <= .5f) entity.morale = 1f;
             if (entity.hitpoints <= entity.maxHP / 2f) entity.hitpoints = entity.maxHP;            
+        }
+
+        private void applyPlayerPreferences(ALivingEntity entity)
+        {
+            UnitPreference.setPreference(entity, UnitPreference.WAIT_IN_HALL_WHILE_IDLE, true);
+            UnitPreference.setPreference(entity, UnitPreference.TRAIN_UNDER_LEVEL_3, true);
+            UnitPreference.setPreference(entity, UnitPreference.IS_PLAYER_UNIT, true);
         }
     }
 }

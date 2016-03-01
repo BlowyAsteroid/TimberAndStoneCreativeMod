@@ -5,7 +5,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Collections
 {
     public enum UnitTraitType { GOOD, BAD }
 
-    public sealed class UnitTrait : IUnitCollectionItem
+    public sealed class UnitTrait : IUnitSettingCollectionItem
     {
         public static readonly UnitTrait Athletic = new UnitTrait("trait.athletic", UnitTraitType.GOOD, "Athletic");
         public static readonly UnitTrait Charismatic = new UnitTrait("trait.charismatic", UnitTraitType.GOOD, "Charismatic");
