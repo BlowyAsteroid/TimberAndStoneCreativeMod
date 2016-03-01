@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Timber_and_Stone;
 using Timber_and_Stone.API;
+using Timber_and_Stone.API.Event;
 using Timber_and_Stone.BlockData;
 using Timber_and_Stone.Blocks;
 using UnityEngine;
@@ -93,6 +94,23 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 
         private GUISection sectionScroll = new GUISection();
 
+        #region Events
+        [Timber_and_Stone.API.Event.EventHandler(Priority.Normal)]
+        public void onMigrantAcceptNormal(EventMigrantAccept evt)
+        {
+            applyPlayerPreferences(evt.unit);
+        }
+
+        [Timber_and_Stone.API.Event.EventHandler(Priority.Normal)]
+        public void onGameLoad(EventGameLoad evt)
+        {
+            foreach (ALivingEntity entity in worldManager.PlayerFaction.units)
+            {
+                applyPlayerPreferences(entity);
+            }
+        }
+        #endregion
+
         public override void OnStart()
         {
             setWindowSize(260f + sectionMain.ControlMargin * 2, Screen.height / 2);
@@ -110,6 +128,13 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
             sectionScroll.Flow = GUISection.Overflow.SCROLL;
 
             availableBlockTypes = ModUtils.getUnbuildableBlockTypes();
+        }
+
+        private void applyPlayerPreferences(ALivingEntity entity)
+        {
+            UnitPreference.setPreference(entity, UnitPreference.WAIT_IN_HALL_WHILE_IDLE, true);
+            UnitPreference.setPreference(entity, UnitPreference.TRAIN_UNDER_LEVEL_3, true);
+            UnitPreference.setPreference(entity, UnitPreference.IS_PLAYER_UNIT, true);
         }
 
         public override void OnInput()

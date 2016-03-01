@@ -48,12 +48,6 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         }
 
         [Timber_and_Stone.API.Event.EventHandler(Priority.Normal)]
-        public void onMigrantAcceptNormal(EventMigrantAccept evt)
-        {
-            applyPlayerPreferences(evt.unit);
-        }
-
-        [Timber_and_Stone.API.Event.EventHandler(Priority.Normal)]
         public void onEntityDeathNormal(EventEntityDeath evt)
         {
             if (!modSettings.isPeacefulEnabled || !UnitPreference.getPreference(evt.getUnit(), UnitPreference.IS_PLAYER_UNIT)) return;
@@ -82,11 +76,6 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 
             sectionMain.Direction = GUISection.FlowDirection.VERTICAL;
             sectionMain.Flow = GUISection.Overflow.HIDDEN;
-
-            foreach (APlayableEntity entity in worldManager.PlayerFaction.units)
-            {
-                applyPlayerPreferences(entity);
-            }
         }
 
         public override void OnDraw(int windowId)
@@ -288,13 +277,6 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
             if (entity.fatigue <= .5f) entity.fatigue = 1f;
             if (entity.morale <= .5f) entity.morale = 1f;
             if (entity.hitpoints <= entity.maxHP / 2f) entity.hitpoints = entity.maxHP;            
-        }
-
-        private void applyPlayerPreferences(ALivingEntity entity)
-        {
-            UnitPreference.setPreference(entity, UnitPreference.WAIT_IN_HALL_WHILE_IDLE, true);
-            UnitPreference.setPreference(entity, UnitPreference.TRAIN_UNDER_LEVEL_3, true);
-            UnitPreference.setPreference(entity, UnitPreference.IS_PLAYER_UNIT, true);
         }
     }
 }

@@ -41,13 +41,13 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
             sectionMain.Direction = GUISection.FlowDirection.VERTICAL;
             sectionMain.Flow = GUISection.Overflow.HIDDEN;
 
-            this.viewState = GameSaveComponent.ViewState.LIST_SAVES;
-            this.gameSaves = new List<GameSaveService.SaveGameInfo>();
-            this.backups = new List<GameSaveService.SaveGameInfo>();
+            viewState = GameSaveComponent.ViewState.LIST_SAVES;
+            gameSaves = new List<GameSaveService.SaveGameInfo>();
+            backups = new List<GameSaveService.SaveGameInfo>();
 
-            this.fileSystemWatcher = gameSaveService.getFileSystemWatcher();
-            this.fileSystemWatcher.EnableRaisingEvents = true;
-            this.fileSystemWatcher.Changed += fileSystemWatcher_Changed;
+            fileSystemWatcher = gameSaveService.getFileSystemWatcher();
+            fileSystemWatcher.EnableRaisingEvents = true;
+            fileSystemWatcher.Changed += fileSystemWatcher_Changed;
 
             modSettings.loadSettings();
         }
