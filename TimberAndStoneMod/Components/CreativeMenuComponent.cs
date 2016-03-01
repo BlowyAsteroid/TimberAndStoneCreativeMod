@@ -52,6 +52,8 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         private bool doRemoveEntity = false;
         private bool doSetPlayerUnitSettings = false;
 
+        private bool doApplyPreferences = true;
+
         private bool hasRemovedTrees = true;
         private bool hasBuiltStructures = true;
 
@@ -104,10 +106,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         [Timber_and_Stone.API.Event.EventHandler(Priority.Normal)]
         public void onGameLoad(EventGameLoad evt)
         {
-            foreach (ALivingEntity entity in worldManager.PlayerFaction.units)
-            {
-                applyPlayerPreferences(entity);
-            }
+            
         }
         #endregion
 
@@ -132,9 +131,12 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 
         private void applyPlayerPreferences(ALivingEntity entity)
         {
-            UnitPreference.setPreference(entity, UnitPreference.WAIT_IN_HALL_WHILE_IDLE, true);
-            UnitPreference.setPreference(entity, UnitPreference.TRAIN_UNDER_LEVEL_3, true);
-            UnitPreference.setPreference(entity, UnitPreference.IS_PLAYER_UNIT, true);
+            if (!UnitPreference.getPreference(entity, UnitPreference.IS_PLAYER_UNIT))
+            {
+                UnitPreference.setPreference(entity, UnitPreference.IS_PLAYER_UNIT, true);
+                UnitPreference.setPreference(entity, UnitPreference.WAIT_IN_HALL_WHILE_IDLE, true);
+                UnitPreference.setPreference(entity, UnitPreference.TRAIN_UNDER_LEVEL_3, true);
+            }
         }
 
         public override void OnInput()
@@ -369,6 +371,16 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
             if (isScrollOverride && !isScrolling)
             {
                 isScrollOverride = false;
+            }
+
+            if (Time.timeSinceLevelLoad > 12f && doApplyPreferences)
+            {
+                doApplyPreferences = false;
+
+                foreach (ALivingEntity entity in worldManager.PlayerFaction.units)
+                {
+                    applyPlayerPreferences(entity);
+                }
             }
 
             if (doSaveGame || doSaveBackup)
