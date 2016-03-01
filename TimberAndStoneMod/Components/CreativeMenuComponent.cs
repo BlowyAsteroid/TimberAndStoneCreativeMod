@@ -383,10 +383,12 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                     {
                         doSaveBackup = false;
 
-                        GameSaveService.SaveGameInfo saveGameInfo = gameSaveService.getSaveGameInfoFromSettlementName(worldManager.settlementName);
-                        gameSaveService.createBackup(saveGameInfo);
-
-                        log("Backup saved for: " + saveGameInfo.Name);
+                        if (!modSettings.isAutoBackupsEnabled)
+                        {
+                            GameSaveService.SaveGameInfo saveGameInfo = gameSaveService.getSaveGameInfoFromSettlementName(worldManager.settlementName);
+                            gameSaveService.createBackup(saveGameInfo);
+                            log("Backup saved for: " + saveGameInfo.Name);
+                        }
                     }
                 }
                 else log("Unable to save. Press play until save button is visible then try again.");
@@ -516,7 +518,10 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                     if (Time.timeSinceLevelLoad > 12f)
                     {
                         sectionMain.Button("Save Game", ref doSaveGame);
-                        sectionMain.Button("Save Backup", ref doSaveBackup);
+                        if (!modSettings.isAutoBackupsEnabled)
+                        {
+                            sectionMain.Button("Save Backup", ref doSaveBackup);
+                        }
                     }
                 }
 
