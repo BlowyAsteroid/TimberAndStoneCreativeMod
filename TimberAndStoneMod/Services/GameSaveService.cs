@@ -39,6 +39,11 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 
         public IEnumerable<SaveGameInfo> getBackups()
         {
+            if (!Directory.Exists(SAVE_BACKUP_PATH))
+            {
+                Directory.CreateDirectory(SAVE_BACKUP_PATH);
+            }
+
             foreach (String fileName in Directory.GetFiles(SAVE_BACKUP_PATH, "*" + SAVE_EXTENSION))
             {
                 yield return new SaveGameInfo(fileName);
