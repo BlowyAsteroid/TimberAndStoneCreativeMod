@@ -20,10 +20,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 
         private ViewState viewState;
         private GameSaveService.SaveGameInfo selectedSave;
-        private GameSaveService.SaveGameInfo selectedBackup;
-
         private List<GameSaveService.SaveGameInfo> gameSaves; 
-        private List<GameSaveService.SaveGameInfo> backups;
 
         private FileSystemWatcher fileSystemWatcher;
 
@@ -42,8 +39,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
             sectionMain.Flow = GUISection.Overflow.HIDDEN;
 
             viewState = GameSaveComponent.ViewState.LIST_SAVES;
-            gameSaves = new List<GameSaveService.SaveGameInfo>();
-            backups = new List<GameSaveService.SaveGameInfo>();
+            gameSaves = gameSaveService.getSavedGames().ToList();
 
             fileSystemWatcher = gameSaveService.getFileSystemWatcher();
             fileSystemWatcher.EnableRaisingEvents = true;
@@ -64,20 +60,6 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                 }
             }
         }
-
-        public override void OnUpdate()
-        {
-            switch (this.viewState)
-            {
-                case ViewState.LIST_SAVES:
-                    this.gameSaves = gameSaveService.getSavedGames().ToList();
-                    break;
-
-                case ViewState.LIST_BACKUPS:
-                    this.backups = gameSaveService.getBackups().ToList();
-                    break;
-            }
-        }
         
         public override void OnDraw(int windowId)
         {
@@ -85,7 +67,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
 
             sectionMain.Begin(0, WINDOW_TITLE_HEIGHT + sectionMain.ControlPadding, this.ParentContainer.width, this.ParentContainer.height);
 
-            if (selectedSave == null && selectedBackup == null)
+            if (selectedSave == null && selectedSave == null)
             {
                 switch (this.viewState)
                 {
@@ -135,6 +117,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                         if (sectionScroll.Button("Delete"))
                         {
                             gameSaveService.deleteSave(selectedSave);
+                            gameSaves = gameSaveService.getSavedGames().ToList();
                             selectedSave = null;
                         }
                     }
@@ -142,13 +125,13 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                     break;
 
                 case ViewState.LIST_BACKUPS:
-                    if (selectedBackup == null)
+                    if (selectedSave == null)
                     {
-                        foreach (GameSaveService.SaveGameInfo saveGameInfo in this.backups)
+                        foreach (GameSaveService.SaveGameInfo saveGameInfo in this.gameSaves)
                         {
                             if (sectionScroll.Button(gameSaveService.getSettlementName(saveGameInfo)))
                             {
-                                selectedBackup = saveGameInfo;
+                                selectedSave = saveGameInfo;
                             }
 
                             sectionScroll.LabelCentered(gameSaveService.getDate(saveGameInfo));
@@ -156,19 +139,20 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                     }
                     else
                     {
-                        sectionScroll.LabelCentered(gameSaveService.getSettlementName(selectedBackup));
-                        sectionScroll.LabelCentered(gameSaveService.getDate(selectedBackup));
+                        sectionScroll.LabelCentered(gameSaveService.getSettlementName(selectedSave));
+                        sectionScroll.LabelCentered(gameSaveService.getDate(selectedSave));
 
                         if (sectionScroll.Button("Restore"))
                         {
-                            gameSaveService.restoreBackup(selectedBackup);
-                            selectedBackup = null;
+                            gameSaveService.restoreBackup(selectedSave);
+                            selectedSave = null;
                         }
 
                         if (sectionScroll.Button("Delete"))
                         {
-                            gameSaveService.deleteSave(selectedBackup);
-                            selectedBackup = null;
+                            gameSaveService.deleteSave(selectedSave);
+                            gameSaves = gameSaveService.getBackups().ToList();
+                            selectedSave = null;
                         }
                     }
 
@@ -192,6 +176,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                         if (sectionMain.Button("Restore"))
                         {
                             this.viewState = ViewState.LIST_BACKUPS;
+                            this.gameSaves = gameSaveService.getBackups().ToList();
                         }
                     }
                     else
@@ -204,18 +189,19 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
                     break;
 
                 case ViewState.LIST_BACKUPS:
-                    if (selectedBackup == null)
+                    if (selectedSave == null)
                     {
                         if (sectionMain.Button("Cancel"))
                         {
                             this.viewState = ViewState.LIST_SAVES;
+                            this.gameSaves = gameSaveService.getSavedGames().ToList();
                         }
                     }
                     else
                     {
                         if (sectionMain.Button("Cancel"))
                         {
-                            selectedBackup = null;
+                            selectedSave = null;
                         }
                     }
                     break;

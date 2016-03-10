@@ -89,7 +89,7 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
         private String createBackupName(SaveGameInfo saveGameInfo)
         {
             FileInfo fileInfo = new FileInfo(saveGameInfo.FilePath);
-            return saveGameInfo.Name + "_" + DateTime.Now.ToString("MMddyyyyhhmmssfff") + SAVE_EXTENSION;
+            return saveGameInfo.Name + "_" + fileInfo.LastWriteTime.ToString("MMddyyyyhhmmssfff") + SAVE_EXTENSION;
         }
 
         public String getSettlementName(SaveGameInfo saveGameInfo)
