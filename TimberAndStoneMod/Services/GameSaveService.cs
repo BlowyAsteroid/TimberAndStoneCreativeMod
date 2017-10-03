@@ -12,17 +12,17 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
     {
         private static readonly GameSaveService instance = new GameSaveService();
         public static GameSaveService getInstance() { return instance; }
-
-        private GameSaveService() { }
-
+        
         private const String SAVE_PATH = "saves\\";
         private const String SAVE_BACKUP_PATH = SAVE_PATH + "backups\\";
         private const String SAVE_EXTENSION = ".tass.gz";
-        
-        public FileSystemWatcher getFileSystemWatcher()
+
+        public FileSystemWatcher FileSystemWatcher { get; private set; }
+
+        private GameSaveService() 
         {
-            return new FileSystemWatcher(SAVE_PATH);
-        }
+            this.FileSystemWatcher = new FileSystemWatcher(SAVE_PATH);
+        }   
 
         public bool isGameSave(String fileName)
         {

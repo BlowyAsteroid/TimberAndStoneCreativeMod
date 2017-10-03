@@ -141,7 +141,11 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Services
 
         public AAnimalEntity addAnimal(UnitAnimal type, Vector3 position)
         {
-            return unitManager.AddAnimal(type.Name.ToLower(), ModUtils.getSlightlyOffsetY(position, 1), false);
+            if (position == Vector3.zero)
+            {
+                return unitManager.AddAnimal(type.Name.ToLower(), position, false);
+            }
+            else return unitManager.AddAnimal(type.Name.ToLower(), ModUtils.getSlightlyOffsetY(position, 1), false);
         }        
 
         private IBlock tempBlock;

@@ -22,8 +22,6 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
         private GameSaveService.SaveGameInfo selectedSave;
         private List<GameSaveService.SaveGameInfo> gameSaves; 
 
-        private FileSystemWatcher fileSystemWatcher;
-
         public override void OnStart()
         {
             title = "Game Save Manager";
@@ -41,11 +39,10 @@ namespace Plugin.BlowyAsteroid.TimberAndStoneMod.Components
             viewState = GameSaveComponent.ViewState.LIST_SAVES;
             gameSaves = gameSaveService.getSavedGames().ToList();
 
-            fileSystemWatcher = gameSaveService.getFileSystemWatcher();
-            fileSystemWatcher.EnableRaisingEvents = true;
-            fileSystemWatcher.Changed += fileSystemWatcher_Changed;
+            gameSaveService.FileSystemWatcher.EnableRaisingEvents = true;
+            gameSaveService.FileSystemWatcher.Changed += fileSystemWatcher_Changed;
 
-            modSettings.loadSettings();
+            //modSettings.loadSettings();
         }
 
         private void fileSystemWatcher_Changed(object sender, FileSystemEventArgs e)
